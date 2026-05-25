@@ -1,0 +1,38 @@
+{
+  "name": "every-harness-plugin-codex",
+  "version": "0.1.0",
+  "description": "Codex plugin for delegating work to external agent harnesses through a shared mailbox runtime.",
+  "type": "module",
+  "author": {
+    "name": "realZillionX",
+    "email": "chanzillion@gmail.com",
+    "url": "https://github.com/realZillionX"
+  },
+  "license": "Apache-2.0",
+  "bin": {
+    "every-harness-plugin-codex": "scripts/installer-cli.mjs"
+  },
+  "files": [
+    ".codex-plugin",
+    "CHANGELOG.md",
+    "LICENSE",
+    "NOTICE",
+    "README.md",
+    "docs",
+    "hooks",
+    "package.json",
+    "scripts",
+    "skills"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "lint": "node scripts/check-syntax.mjs",
+    "typecheck": "node scripts/check-syntax.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "check": "npm run lint && npm test",
+    "pack:dry-run": "npm pack --dry-run",
+    "smoke:fake": "node scripts/smoke-fake.mjs"
+  }
+}

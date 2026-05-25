@@ -1,0 +1,42 @@
+{
+  "name": "every-harness",
+  "version": "0.1.0",
+  "description": "Delegate Codex work to external agent harnesses through one mailbox runtime.",
+  "author": {
+    "name": "realZillionX",
+    "email": "chanzillion@gmail.com",
+    "url": "https://github.com/realZillionX"
+  },
+  "homepage": "https://github.com/realZillionX/every-harness-plugin-codex",
+  "repository": "https://github.com/realZillionX/every-harness-plugin-codex",
+  "license": "Apache-2.0",
+  "keywords": [
+    "codex",
+    "agent",
+    "harness",
+    "mailbox",
+    "delegation"
+  ],
+  "skills": "./skills/",
+  "hooks": "./hooks/hooks.json",
+  "interface": {
+    "displayName": "Every Harness",
+    "shortDescription": "Delegate work to external agent harnesses",
+    "longDescription": "Use one Codex mailbox workflow to run, monitor, cancel, and set up external agent harness adapters such as Gemini ACP and Claude CLI.",
+    "developerName": "realZillionX",
+    "category": "Coding",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/realZillionX/every-harness-plugin-codex",
+    "privacyPolicyURL": "https://github.com/realZillionX/every-harness-plugin-codex#privacy",
+    "termsOfServiceURL": "https://github.com/realZillionX/every-harness-plugin-codex#license",
+    "defaultPrompt": [
+      "Run an external harness with $every-harness:run --harness fake",
+      "Check external harness work with $every-harness:status",
+      "Verify adapters with $every-harness:setup"
+    ],
+    "brandColor": "#10A37F"
+  }
+}
