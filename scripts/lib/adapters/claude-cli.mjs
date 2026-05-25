@@ -578,6 +578,7 @@ export function createClaudeCliAdapter(options = {}) {
 
   return {
     id: "claude-cli",
+    aliases: ["claude", "claude-code"],
     displayName: "Claude CLI",
     defaultModel: MODEL_ALIASES.get("sonnet"),
     checkAvailability,

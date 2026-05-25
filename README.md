@@ -22,15 +22,30 @@ $every-harness:status --all
 $every-harness:cancel --harness gemini-acp
 ```
 
-## Adapters
+## Built-In Harnesses
 
-Initial adapter targets：
+Every Harness is intended to cover real coding-agent harnesses, not only provide an abstract adapter API. Current built-in targets：
 
 - `fake`：deterministic local adapter for tests and smoke checks.
-- `gemini-acp`：Gemini CLI through ACP.
-- `claude-cli`：Claude Code CLI through `claude -p` stream JSON.
+- `gemini-acp` / `gemini-cli`：Gemini CLI through ACP.
+- `claude-cli` / `claude-code`：Claude Code through `claude -p` stream JSON.
+- `opencode`：OpenCode through ACP.
+- `openclaw`：OpenClaw through ACP.
+- `deepseek-tui`：DeepSeek TUI through ACP.
+- `kimi-code`：Kimi Code through ACP.
+- `qoder-cli`：Qoder CLI through ACP.
+- `trae-cli`：Trae CLI through ACP.
+- `qwen-code`：Qwen Code through ACP.
+- `copilot-cli`：GitHub Copilot CLI through ACP.
+- `cursor-agent`：Cursor Agent through ACP.
+- `iflow-cli`：iFlow CLI through ACP.
+- `kiro-cli`：Kiro CLI through ACP.
+- `kilocode-cli`：Kilo Code CLI through ACP.
+- `factory-droid`：Factory Droid through ACP.
 
-The runtime is model-agnostic. Model and effort flags are passed through adapter-specific normalization.
+Google Antigravity CLI is tracked as `antigravity-cli` in the research catalog, but a stable non-interactive or ACP contract still needs confirmation before enabling a real run adapter.
+
+See [docs/research/2026-05-26-harness-catalog.md](docs/research/2026-05-26-harness-catalog.md) for the current source matrix.
 
 ## Hooks
 

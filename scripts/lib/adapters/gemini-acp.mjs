@@ -363,6 +363,7 @@ export function createGeminiAcpAdapter(options = {}) {
 
   return {
     id: "gemini-acp",
+    aliases: ["gemini", "gemini-cli"],
     displayName: "Gemini ACP",
     defaultModel: DEFAULT_MODEL,
     models: MODELS,

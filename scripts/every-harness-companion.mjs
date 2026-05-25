@@ -2,10 +2,17 @@
 
 import { registerAdapter } from "./lib/adapters/registry.mjs";
 import { fakeAdapter } from "./lib/adapters/fake.mjs";
+import { createBuiltinAcpAdapters, createPlannedHarnessAdapters } from "./lib/adapters/builtin-harnesses.mjs";
 import { handleCancel, handleRun, handleSetup, handleStatus, handleWorker } from "./lib/runtime/mailbox-runtime.mjs";
 
 async function registerBuiltInAdapters() {
   registerAdapter(fakeAdapter);
+  for (const adapter of createBuiltinAcpAdapters()) {
+    registerAdapter(adapter, adapter.aliases ?? []);
+  }
+  for (const adapter of createPlannedHarnessAdapters()) {
+    registerAdapter(adapter, adapter.aliases ?? []);
+  }
   for (const modulePath of ["./lib/adapters/gemini-acp.mjs", "./lib/adapters/claude-cli.mjs"]) {
     try {
       const mod = await import(modulePath);
