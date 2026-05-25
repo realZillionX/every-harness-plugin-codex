@@ -2,6 +2,7 @@ import { spawn as nodeSpawn, spawnSync } from "node:child_process";
 import readline from "node:readline";
 
 const DEFAULT_INIT_TIMEOUT_MS = 30_000;
+const DEFAULT_CANCEL_DELIVERY_DELAY_MS = 50;
 const PERMISSION_APPROVAL_RESPONSE = Object.freeze({
   outcome: Object.freeze({
     outcome: "success",
@@ -140,6 +141,11 @@ export function createGenericAcpAdapter(definition, options = {}) {
         env: request.env ?? process.env,
       });
       client.cancel(sessionId);
+      const deliveryDelayMs =
+        request.cancelDeliveryDelayMs ??
+        options.cancelDeliveryDelayMs ??
+        DEFAULT_CANCEL_DELIVERY_DELAY_MS;
+      if (deliveryDelayMs > 0) await sleep(deliveryDelayMs);
       await client.shutdown?.({ phase1Ms: 100, phase2Ms: 500 });
       return { cancelled: true, detail: "ACP session/cancel delivered." };
     } catch (error) {
@@ -203,10 +209,12 @@ class JsonRpcAcpClient {
 
   constructor(proc) {
     this.#proc = proc;
+    proc.stdin?.on?.("error", (error) => this.#onExit(null, error));
     if (proc.stdout) {
       this.#rl = readline.createInterface({ input: proc.stdout, crlfDelay: Infinity });
       this.#rl.on("line", (line) => this.#onLine(line));
     }
+    proc.on?.("error", (error) => this.#onExit(null, error));
     proc.on?.("exit", (code) => this.#onExit(code));
   }
 
@@ -258,25 +266,35 @@ class JsonRpcAcpClient {
   async shutdown(options = {}) {
     if (this.#closed) return;
     this.#closed = true;
-    this.#rl?.close();
-    try {
-      this.#proc.stdin?.end?.();
-    } catch {}
     const phase1Ms = options.phase1Ms ?? 100;
     const phase2Ms = options.phase2Ms ?? 1000;
     await new Promise((resolve) => {
       let done = false;
+      let termTimer;
+      let killTimer;
       const finish = () => {
         if (done) return;
         done = true;
+        clearTimeout(termTimer);
+        clearTimeout(killTimer);
+        this.#rl?.close();
+        try {
+          this.#proc.stdout?.destroy?.();
+        } catch {}
+        try {
+          this.#proc.stderr?.destroy?.();
+        } catch {}
         resolve();
       };
       this.#proc.once?.("exit", finish);
-      setTimeout(() => {
+      try {
+        this.#proc.stdin?.end?.();
+      } catch {}
+      termTimer = setTimeout(() => {
         try {
           this.#proc.kill?.("SIGTERM");
         } catch {}
-        setTimeout(() => {
+        killTimer = setTimeout(() => {
           try {
             this.#proc.kill?.("SIGKILL");
           } catch {}
@@ -300,7 +318,9 @@ class JsonRpcAcpClient {
 
   #send(message) {
     if (this.#closed) return;
-    this.#proc.stdin?.write?.(`${JSON.stringify(message)}\n`);
+    try {
+      this.#proc.stdin?.write?.(`${JSON.stringify(message)}\n`);
+    } catch {}
   }
 
   #onLine(line) {
@@ -327,7 +347,8 @@ class JsonRpcAcpClient {
         });
         return;
       }
-      Promise.resolve(handler(message.params))
+      Promise.resolve()
+        .then(() => handler(message.params))
         .then((result) => this.#send({ jsonrpc: "2.0", id: message.id, result }))
         .catch((error) =>
           this.#send({
@@ -343,17 +364,48 @@ class JsonRpcAcpClient {
       const pending = this.#pending.get(message.id);
       if (!pending) return;
       this.#pending.delete(message.id);
-      if (message.error) pending.reject(new Error(message.error.message));
-      else pending.resolve(message.result);
+      if (message.error) {
+        const error = new Error(message.error.message);
+        error.code = message.error.code;
+        error.data = message.error.data;
+        pending.reject(error);
+      } else {
+        pending.resolve(message.result);
+      }
     }
   }
 
-  #onExit(code) {
+  #onExit(code, reason = null) {
     if (this.#closed) return;
     this.#closed = true;
-    const error = new Error(`ACP process exited unexpectedly (code ${code})`);
+    const error = reason instanceof Error
+      ? reason
+      : new Error(`ACP process exited unexpectedly (code ${code})`);
+    if (!error.code) error.code = "ACP_PROCESS_EXIT";
+    error.exitCode = code;
     for (const pending of this.#pending.values()) pending.reject(error);
     this.#pending.clear();
+  }
+
+  killImmediately(reason) {
+    if (this.#closed) return;
+    this.#closed = true;
+    const error = reason instanceof Error ? reason : new Error(String(reason));
+    for (const pending of this.#pending.values()) pending.reject(error);
+    this.#pending.clear();
+    this.#rl?.close();
+    try {
+      this.#proc.stdin?.destroy?.();
+    } catch {}
+    try {
+      this.#proc.stdout?.destroy?.();
+    } catch {}
+    try {
+      this.#proc.stderr?.destroy?.();
+    } catch {}
+    try {
+      this.#proc.kill?.("SIGKILL");
+    } catch {}
   }
 }
 
@@ -367,11 +419,16 @@ async function spawnAcpClient(definition, options = {}) {
   });
   const client = new JsonRpcAcpClient(proc);
   installDefaultHandlers(client, definition);
-  await withTimeout(
-    client.initialize(),
-    options.initTimeoutMs ?? DEFAULT_INIT_TIMEOUT_MS,
-    `${definition.displayName} ACP initialize timed out.`,
-  );
+  try {
+    await withTimeout(
+      client.initialize(),
+      options.initTimeoutMs ?? DEFAULT_INIT_TIMEOUT_MS,
+      `${definition.displayName} ACP initialize timed out.`,
+    );
+  } catch (error) {
+    client.killImmediately(error);
+    throw error;
+  }
   return client;
 }
 
@@ -437,6 +494,10 @@ function firstMeaningfulLine(text) {
     .split(/\r?\n/)
     .map((line) => line.trim())
     .find(Boolean);
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function withTimeout(promise, timeoutMs, message) {

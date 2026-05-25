@@ -1,5 +1,10 @@
 import { createGenericAcpAdapter } from "./acp-generic.mjs";
 
+const DEFAULT_ACP_METADATA = Object.freeze({
+  maturity: "experimental",
+  protocol: "acp",
+});
+
 export const BUILTIN_ACP_HARNESSES = [
   {
     id: "opencode",
@@ -96,9 +101,9 @@ export const BUILTIN_ACP_HARNESSES = [
     id: "kiro-cli",
     aliases: ["kiro"],
     displayName: "Kiro CLI",
-    command: "kiro-cli-chat",
+    command: "kiro-cli",
     args: ["acp"],
-    install: "Install Kiro CLI and expose `kiro-cli-chat acp` on PATH.",
+    install: "Install Kiro CLI and expose `kiro-cli acp` on PATH.",
     source: "https://acpx.sh/agents.html#kiro",
   },
   {
@@ -121,16 +126,16 @@ export const BUILTIN_ACP_HARNESSES = [
     source: "https://acpx.sh/agents.html#droid-factory",
   },
   {
-    id: "pi-coding-agent",
-    aliases: ["pi"],
-    displayName: "Pi Coding Agent",
+    id: "pi-acp-bridge",
+    aliases: ["pi-acp"],
+    displayName: "Pi ACP Bridge",
     command: "npx",
     args: ["-y", "pi-acp"],
     probe: { command: "npx", args: ["--version"] },
-    install: "Uses `npx -y pi-acp` by default.",
+    install: "Uses the community `npx -y pi-acp` bridge by default; official Pi uses `pi --mode rpc` or `pi --mode json` and needs a dedicated adapter.",
     source: "https://acpx.sh/agents.html#pi",
   },
-];
+].map((definition) => ({ ...DEFAULT_ACP_METADATA, ...definition }));
 
 export const PLANNED_HARNESSES = [
   {
@@ -138,15 +143,44 @@ export const PLANNED_HARNESSES = [
     aliases: ["antigravity", "agy"],
     displayName: "Google Antigravity CLI",
     maturity: "planned",
+    protocol: "unverified",
+    install: "No runnable install command is exposed until a stable headless or ACP contract is verified.",
     reason: "Official CLI docs describe interactive slash-command workflows, but a stable ACP/headless protocol was not yet verified.",
     source: "https://antigravity.google/docs/cli-using",
+  },
+  {
+    id: "pi-coding-agent",
+    aliases: ["pi"],
+    displayName: "Pi Coding Agent",
+    maturity: "planned",
+    protocol: "native-rpc",
+    install: "Install official Pi with `npm install -g --ignore-scripts @earendil-works/pi-coding-agent`; adapter work must target `pi --mode rpc` or `pi --mode json`.",
+    reason: "Official Pi is not the same as the community `pi-acp` bridge and needs a dedicated native RPC/JSON adapter.",
+    source: "https://pi.dev/docs/latest/quickstart",
   },
 ];
 
 export function createBuiltinAcpAdapters(options = {}) {
-  return BUILTIN_ACP_HARNESSES.map((definition) =>
-    createGenericAcpAdapter(definition, options),
-  );
+  return BUILTIN_ACP_HARNESSES.map((definition) => {
+    const adapter = createGenericAcpAdapter(definition, options);
+    return {
+      ...adapter,
+      maturity: definition.maturity,
+      protocol: definition.protocol,
+      source: definition.source,
+      install: definition.install,
+      async checkAvailability(context = {}) {
+        const availability = await adapter.checkAvailability(context);
+        return {
+          ...availability,
+          install: availability.install ?? definition.install ?? null,
+          maturity: definition.maturity,
+          protocol: definition.protocol,
+          source: definition.source,
+        };
+      },
+    };
+  });
 }
 
 export function createPlannedHarnessAdapters() {
@@ -155,10 +189,16 @@ export function createPlannedHarnessAdapters() {
     aliases: definition.aliases ?? [],
     displayName: definition.displayName,
     maturity: definition.maturity,
+    protocol: definition.protocol,
+    install: definition.install,
+    source: definition.source,
     async checkAvailability() {
       return {
         available: false,
         detail: definition.reason,
+        install: definition.install,
+        maturity: definition.maturity,
+        protocol: definition.protocol,
         source: definition.source,
       };
     },

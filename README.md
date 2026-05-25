@@ -42,7 +42,9 @@ Every Harness is intended to cover real coding-agent harnesses, not only provide
 - `kiro-cli`：Kiro CLI through ACP.
 - `kilocode-cli`：Kilo Code CLI through ACP.
 - `factory-droid`：Factory Droid through ACP.
-- `pi-coding-agent`：Pi Coding Agent through ACP.
+- `pi-acp-bridge`：community `pi-acp` bridge through ACP.
+
+Official Pi Coding Agent is tracked separately as `pi-coding-agent` and needs a dedicated `pi --mode rpc` / `pi --mode json` adapter before it should be considered runnable.
 
 Google Antigravity CLI is tracked as `antigravity-cli` in the research catalog, but a stable non-interactive or ACP contract still needs confirmation before enabling a real run adapter.
 

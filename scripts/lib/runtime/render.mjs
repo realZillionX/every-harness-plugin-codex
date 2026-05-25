@@ -58,21 +58,79 @@ export function renderStatus(jobs, { all = false } = {}) {
   return selected.map(renderMailboxJob).join("");
 }
 
+const SETUP_MATURITY_ORDER = ["stable", "experimental", "planned"];
+const SETUP_MATURITY_LABELS = {
+  stable: "Stable harnesses",
+  experimental: "Experimental harnesses",
+  planned: "Planned harnesses (catalog only, not runnable)",
+  other: "Other harnesses",
+};
+
+function setupMaturity(adapter) {
+  const maturity = String(adapter.maturity ?? "stable").trim().toLowerCase();
+  if (SETUP_MATURITY_ORDER.includes(maturity)) return maturity;
+  return "other";
+}
+
+function setupProtocol(adapter) {
+  return adapter.protocol ?? adapter.availability?.protocol ?? null;
+}
+
+function setupSource(adapter) {
+  return adapter.source ?? adapter.availability?.source ?? null;
+}
+
+function setupInstall(adapter) {
+  return adapter.availability?.install ?? adapter.install ?? null;
+}
+
+function renderSetupAdapter(lines, adapter) {
+  const maturity = setupMaturity(adapter);
+  const protocol = setupProtocol(adapter);
+  const source = setupSource(adapter);
+  const install = setupInstall(adapter);
+  const protocolSuffix = protocol ? ` (protocol: ${protocol})` : "";
+
+  if (maturity === "planned") {
+    lines.push(`- ${adapter.id}: planned, not runnable${protocolSuffix}`);
+    if (adapter.aliases?.length) lines.push(`  aliases: ${adapter.aliases.join(", ")}`);
+    if (adapter.availability?.detail) lines.push(`  reason: ${adapter.availability.detail}`);
+    if (source) lines.push(`  source: ${source}`);
+    if (install) lines.push(`  install: ${install}`);
+    return;
+  }
+
+  const availability = adapter.availability?.available ? "available" : "unavailable";
+  const auth = adapter.auth?.loggedIn === true
+    ? "authenticated"
+    : adapter.auth?.loggedIn === false
+      ? "auth needed"
+      : "auth unknown";
+  lines.push(`- ${adapter.id}: ${availability}, ${auth}${protocolSuffix}`);
+  if (adapter.aliases?.length) lines.push(`  aliases: ${adapter.aliases.join(", ")}`);
+  if (source) lines.push(`  source: ${source}`);
+  if (adapter.availability?.detail) lines.push(`  availability: ${adapter.availability.detail}`);
+  if (adapter.auth?.detail) lines.push(`  auth: ${adapter.auth.detail}`);
+  if (!adapter.availability?.available && install) {
+    lines.push(`  install: ${install}`);
+  }
+}
+
 export function renderSetupReport(report) {
   const lines = ["Every Harness setup"];
+  const groups = new Map();
   for (const adapter of report.adapters ?? []) {
-    const availability = adapter.availability?.available ? "available" : "unavailable";
-    const auth = adapter.auth?.loggedIn === true
-      ? "authenticated"
-      : adapter.auth?.loggedIn === false
-        ? "auth needed"
-        : "auth unknown";
-    const metadata = [adapter.protocol, adapter.maturity].filter(Boolean).join(", ");
-    lines.push(`- ${adapter.id}: ${availability}, ${auth}${metadata ? ` (${metadata})` : ""}`);
-    if (adapter.availability?.detail) lines.push(`  availability: ${adapter.availability.detail}`);
-    if (adapter.auth?.detail) lines.push(`  auth: ${adapter.auth.detail}`);
-    if (!adapter.availability?.available && (adapter.availability?.install || adapter.install)) {
-      lines.push(`  install: ${adapter.availability?.install ?? adapter.install}`);
+    const maturity = setupMaturity(adapter);
+    const list = groups.get(maturity) ?? [];
+    list.push(adapter);
+    groups.set(maturity, list);
+  }
+  for (const maturity of [...SETUP_MATURITY_ORDER, "other"]) {
+    const adapters = groups.get(maturity) ?? [];
+    if (!adapters.length) continue;
+    lines.push(SETUP_MATURITY_LABELS[maturity]);
+    for (const adapter of adapters) {
+      renderSetupAdapter(lines, adapter);
     }
   }
   if (report.hooks?.enabled) {

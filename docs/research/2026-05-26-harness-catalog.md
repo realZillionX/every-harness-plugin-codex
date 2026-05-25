@@ -29,10 +29,11 @@ Current implementation stance：
 | GitHub Copilot CLI | `copilot-cli` | `copilot --acp --stdio` | Generic ACP adapter implemented |
 | Cursor Agent | `cursor-agent` | `cursor-agent acp` | Generic ACP adapter implemented |
 | iFlow CLI | `iflow-cli` | `iflow --experimental-acp` | Generic ACP adapter implemented |
-| Kiro CLI | `kiro-cli` | `kiro-cli-chat acp` | Generic ACP adapter implemented |
+| Kiro CLI | `kiro-cli` | `kiro-cli acp` | Generic ACP adapter implemented |
 | Kilo Code CLI | `kilocode-cli` | `npx -y @kilocode/cli acp` | Generic ACP adapter implemented |
 | Factory Droid | `factory-droid` | `droid exec --output-format acp` | Generic ACP adapter implemented |
-| Pi Coding Agent | `pi-coding-agent` | `npx -y pi-acp` | Generic ACP adapter implemented |
+| Pi ACP Bridge | `pi-acp-bridge` | `npx -y pi-acp` | Generic ACP adapter implemented |
+| Pi Coding Agent | `pi-coding-agent` | `pi --mode rpc` / `pi --mode json` | Planned dedicated native adapter |
 | Google Antigravity CLI | `antigravity-cli` | unverified headless contract | Cataloged as planned |
 
 ## Local Environment Findings
@@ -41,7 +42,7 @@ On the current machine：
 
 - `gemini` exists at `/Users/zillionx/.local/bin/gemini` and reports version `0.43.0`。Its help confirms `--acp` and non-interactive `-p/--prompt` with `--output-format text|json|stream-json`。
 - `claude` exists at `/Users/zillionx/.local/bin/claude` and reports version `2.1.114`。Its help confirms `-p/--print`、`--output-format text|json|stream-json`、`--include-partial-messages`、`--session-id`、`--resume`、and `--permission-mode`。
-- `opencode`、`openclaw`、`deepseek`、`kimi`、`trae`、`qodercli`、`qwen`、`copilot`、`cursor-agent`、`iflow`、`kiro-cli-chat`、and `droid` are not currently installed on this machine.
+- `opencode`、`openclaw`、`deepseek`、`kimi`、`trae`、`qodercli`、`qwen`、`copilot`、`cursor-agent`、`iflow`、`kiro-cli`、and `droid` are not currently installed on this machine.
 
 ## Source Notes
 
@@ -49,7 +50,8 @@ On the current machine：
 - Anthropic Claude Code npm metadata：`@anthropic-ai/claude-code` provides the `claude` binary and links to `https://github.com/anthropics/claude-code`。
 - Qwen Code npm metadata：`@qwen-code/qwen-code` provides the `qwen` binary and links to `https://github.com/QwenLM/qwen-code`。
 - Qoder CLI npm metadata：`@qoder-ai/qodercli` provides the `qodercli` binary and links to `https://github.com/nicepkg/qodercli`；Qoder docs also expose CLI and ACP documentation at `https://docs.qoder.com/cli/acp`。
-- ACP ecosystem references include the Agent Client Protocol SDK at `https://github.com/agentclientprotocol/typescript-sdk` and the `acpx` agent list at `https://acpx.sh/agents.html`。The `acpx` registry confirms ACP command shapes for OpenClaw、Cursor、Gemini、Copilot、Droid、Qoder、iFlow、Kilo Code、Kimi、Kiro、OpenCode、Qwen、Trae and Pi.
+- ACP ecosystem references include the Agent Client Protocol SDK at `https://github.com/agentclientprotocol/typescript-sdk` and the `acpx` agent list at `https://acpx.sh/agents.html`。The `acpx` registry confirms ACP command shapes for OpenClaw、Cursor、Gemini、Copilot、Droid、Qoder、iFlow、Kilo Code、Kimi、Kiro、OpenCode、Qwen、Trae and the community Pi ACP bridge.
+- Official Pi Coding Agent is separate from `pi-acp`。Its public quickstart describes `@earendil-works/pi-coding-agent` with `pi --mode rpc` / `pi --mode json` integration modes, so it should get a dedicated adapter rather than being represented as an ACP harness.
 - Trae Agent public source is at `https://github.com/bytedance/trae-agent`。
 - OpenCode ACP docs are at `https://opencode.ai/docs/integrations/acp/`。
 - Antigravity CLI docs are at `https://antigravity.google/docs/cli-using`，but a stable non-interactive ACP or JSON contract still needs direct confirmation before implementing a real adapter.
