@@ -29,12 +29,13 @@ Every Harness is intended to cover real coding-agent harnesses, not only provide
 - `fake`：deterministic local adapter for tests and smoke checks.
 - `gemini-acp` / `gemini-cli`：Gemini CLI through ACP.
 - `claude-cli` / `claude-code`：Claude Code through `claude -p` stream JSON.
+- `antigravity-cli`：Google Antigravity CLI through limited `agy --print` text headless execution.
 - `opencode`：OpenCode through ACP.
 - `openclaw`：OpenClaw through ACP.
-- `deepseek-tui`：DeepSeek TUI through ACP.
-- `kimi-code`：Kimi Code through ACP.
+- `codewhale` / `deepseek-tui`：community CodeWhale for DeepSeek-style coding through `stream-json` or ACP. This is not an official DeepSeek CLI.
+- `kimi-code`：Kimi Code through `kimi -p --output-format stream-json`; legacy `kimi acp` belongs to older `kimi-cli` research only.
 - `qoder-cli`：Qoder CLI through ACP.
-- `trae-cli`：Trae CLI through ACP.
+- `trae-cli`：official Trae CLI through `traecli acp serve`; `--print --json` is the native fallback.
 - `qwen-code`：Qwen Code through ACP.
 - `copilot-cli`：GitHub Copilot CLI through ACP.
 - `cursor-agent`：Cursor Agent through ACP.
@@ -46,7 +47,7 @@ Every Harness is intended to cover real coding-agent harnesses, not only provide
 
 Official Pi Coding Agent is tracked separately as `pi-coding-agent` and needs a dedicated `pi --mode rpc` / `pi --mode json` adapter before it should be considered runnable.
 
-Google Antigravity CLI is tracked as `antigravity-cli` in the research catalog, but a stable non-interactive or ACP contract still needs confirmation before enabling a real run adapter.
+Antigravity support is deliberately limited to text headless mode because ACP、JSON、and streaming contracts are not confirmed.
 
 See [docs/research/2026-05-26-harness-catalog.md](docs/research/2026-05-26-harness-catalog.md) for the current source matrix.
 

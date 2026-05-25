@@ -9,6 +9,7 @@ import { tmpdir } from "node:os";
 import { createGenericAcpAdapter, normalizeAcpProgressUpdate } from "../scripts/lib/adapters/acp-generic.mjs";
 import {
   BUILTIN_ACP_HARNESSES,
+  BUILTIN_CLI_HEADLESS_HARNESSES,
   PLANNED_HARNESSES,
   createBuiltinAcpAdapters,
   createPlannedHarnessAdapters,
@@ -211,8 +212,6 @@ test("built-in ACP harness catalog includes user-requested harnesses", () => {
   for (const id of [
     "opencode",
     "openclaw",
-    "deepseek-tui",
-    "kimi-code",
     "qoder-cli",
     "trae-cli",
     "qwen-code",
@@ -232,11 +231,19 @@ test("built-in ACP harness catalog includes user-requested harnesses", () => {
   assert.ok(adapters.every((adapter) => adapter.protocol === "acp"));
 });
 
+test("native headless catalog includes non-ACP requested harnesses", () => {
+  const ids = new Set(BUILTIN_CLI_HEADLESS_HARNESSES.map((definition) => definition.id));
+  assert.equal(ids.has("antigravity-cli"), true);
+  assert.equal(ids.has("codewhale"), true);
+  assert.equal(ids.has("kimi-code"), true);
+  const codewhale = BUILTIN_CLI_HEADLESS_HARNESSES.find((definition) => definition.id === "codewhale");
+  assert.ok(codewhale.aliases.includes("deepseek-tui"));
+});
+
 test("catalog tracks planned but unverified harnesses explicitly", async () => {
-  assert.equal(PLANNED_HARNESSES.some((definition) => definition.id === "antigravity-cli"), true);
   assert.equal(PLANNED_HARNESSES.some((definition) => definition.id === "pi-coding-agent"), true);
   const [adapter] = createPlannedHarnessAdapters();
-  assert.equal(adapter.id, "antigravity-cli");
+  assert.equal(adapter.id, "pi-coding-agent");
   assert.equal((await adapter.checkAvailability()).available, false);
   await assert.rejects(() => adapter.runTurn(), /not runnable yet/);
 });

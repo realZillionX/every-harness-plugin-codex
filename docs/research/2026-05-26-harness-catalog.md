@@ -11,6 +11,7 @@ Current implementation stance：
 - Gemini CLI：keep the dedicated `gemini-acp` adapter because the local CLI already supports `--acp` and has known permission-mode behavior.
 - Claude Code：keep the dedicated `claude-cli` adapter because `claude -p --output-format stream-json` exposes mature non-interactive execution, session IDs, partial messages, tool events, and structured output.
 - ACP-capable harnesses：register first-class built-in ACP adapters, not a user-defined “generic interface” only.
+- Headless native harnesses：prefer the richer native contract when it exists. For example, latest Kimi Code should use `kimi -p --output-format stream-json` instead of defaulting to legacy `kimi acp` from older `kimi-cli` notes.
 - Interactive-only or unclear harnesses：catalog them explicitly, but do not pretend they are safely automatable until a stable headless or ACP contract is verified.
 
 ## Built-In Harness Targets
@@ -19,12 +20,14 @@ Current implementation stance：
 | --- | --- | --- | --- |
 | Gemini CLI | `gemini-acp` | `gemini --acp` | Dedicated adapter implemented |
 | Claude Code | `claude-cli` | `claude -p --output-format stream-json` | Dedicated adapter implemented |
-| OpenCode | `opencode` | `npx -y opencode-ai acp` | Generic ACP adapter implemented |
+| OpenCode | `opencode` | `opencode acp`; `opencode run --format json`; `opencode serve` | Generic ACP adapter implemented; native JSON path needs dedicated follow-up |
 | OpenClaw | `openclaw` | `openclaw acp` | Generic ACP adapter implemented |
-| DeepSeek TUI | `deepseek-tui` | `deepseek serve --acp` | Generic ACP adapter implemented |
-| Kimi Code | `kimi-code` | `kimi acp` | Generic ACP adapter implemented |
+| DeepSeek TUI semantic target | `deepseek-tui` | no official DeepSeek CLI found | Alias to community CodeWhale only; do not present as official DeepSeek support |
+| CodeWhale community bridge | `codewhale` | `codewhale exec --auto --output-format stream-json`; `codewhale serve --acp` | Native stream JSON adapter implemented for the community implementation |
+| Kimi Code | `kimi-code` | `kimi -p --output-format stream-json` | Native stream JSON adapter implemented |
+| Legacy kimi-cli ACP | `kimi-cli-legacy` | `kimi acp` | Legacy research note only; do not default latest Kimi Code to this path |
 | Qoder CLI | `qoder-cli` | `qodercli --acp` | Generic ACP adapter implemented |
-| Trae CLI | `trae-cli` | `traecli acp serve` | Generic ACP adapter implemented |
+| Trae CLI | `trae-cli` | `traecli acp serve`; `traecli --print --json` | Official ACP entry confirmed; native JSON fallback tracked |
 | Qwen Code | `qwen-code` | `qwen --acp` | Generic ACP adapter implemented |
 | GitHub Copilot CLI | `copilot-cli` | `copilot --acp --stdio` | Generic ACP adapter implemented |
 | Cursor Agent | `cursor-agent` | `cursor-agent acp` | Generic ACP adapter implemented |
@@ -32,9 +35,9 @@ Current implementation stance：
 | Kiro CLI | `kiro-cli` | `kiro-cli acp` | Generic ACP adapter implemented |
 | Kilo Code CLI | `kilocode-cli` | `npx -y @kilocode/cli acp` | Generic ACP adapter implemented |
 | Factory Droid | `factory-droid` | `droid exec --output-format acp` | Generic ACP adapter implemented |
-| Pi ACP Bridge | `pi-acp-bridge` | `npx -y pi-acp` | Generic ACP adapter implemented |
+| Pi ACP Bridge | `pi-acp-bridge` | `npx -y pi-acp` | Community ACP bridge; separate from official Pi |
 | Pi Coding Agent | `pi-coding-agent` | `pi --mode rpc` / `pi --mode json` | Planned dedicated native adapter |
-| Google Antigravity CLI | `antigravity-cli` | unverified headless contract | Cataloged as planned |
+| Google Antigravity CLI | `antigravity-cli` | `agy --print` / `agy -p` | Limited text headless adapter implemented; ACP、JSON、and streaming contracts are not confirmed |
 
 ## Local Environment Findings
 
@@ -42,7 +45,7 @@ On the current machine：
 
 - `gemini` exists at `/Users/zillionx/.local/bin/gemini` and reports version `0.43.0`。Its help confirms `--acp` and non-interactive `-p/--prompt` with `--output-format text|json|stream-json`。
 - `claude` exists at `/Users/zillionx/.local/bin/claude` and reports version `2.1.114`。Its help confirms `-p/--print`、`--output-format text|json|stream-json`、`--include-partial-messages`、`--session-id`、`--resume`、and `--permission-mode`。
-- `opencode`、`openclaw`、`deepseek`、`kimi`、`trae`、`qodercli`、`qwen`、`copilot`、`cursor-agent`、`iflow`、`kiro-cli`、and `droid` are not currently installed on this machine.
+- `opencode`、`openclaw`、`deepseek`、`codewhale`、`kimi`、`trae`、`qodercli`、`qwen`、`copilot`、`cursor-agent`、`iflow`、`kiro-cli`、`droid`、and `agy` are not currently installed on this machine.
 
 ## Source Notes
 
@@ -50,11 +53,13 @@ On the current machine：
 - Anthropic Claude Code npm metadata：`@anthropic-ai/claude-code` provides the `claude` binary and links to `https://github.com/anthropics/claude-code`。
 - Qwen Code npm metadata：`@qwen-code/qwen-code` provides the `qwen` binary and links to `https://github.com/QwenLM/qwen-code`。
 - Qoder CLI npm metadata：`@qoder-ai/qodercli` provides the `qodercli` binary and links to `https://github.com/nicepkg/qodercli`；Qoder docs also expose CLI and ACP documentation at `https://docs.qoder.com/cli/acp`。
-- ACP ecosystem references include the Agent Client Protocol SDK at `https://github.com/agentclientprotocol/typescript-sdk` and the `acpx` agent list at `https://acpx.sh/agents.html`。The `acpx` registry confirms ACP command shapes for OpenClaw、Cursor、Gemini、Copilot、Droid、Qoder、iFlow、Kilo Code、Kimi、Kiro、OpenCode、Qwen、Trae and the community Pi ACP bridge.
+- ACP ecosystem references include the Agent Client Protocol SDK at `https://github.com/agentclientprotocol/typescript-sdk` and the `acpx` agent list at `https://acpx.sh/agents.html`。The `acpx` registry confirms ACP command shapes for OpenClaw、Cursor、Gemini、Copilot、Droid、Qoder、iFlow、Kilo Code、legacy Kimi CLI、Kiro、OpenCode、Qwen、Trae and the community Pi ACP bridge.
 - Official Pi Coding Agent is separate from `pi-acp`。Its public quickstart describes `@earendil-works/pi-coding-agent` with `pi --mode rpc` / `pi --mode json` integration modes, so it should get a dedicated adapter rather than being represented as an ACP harness.
-- Trae Agent public source is at `https://github.com/bytedance/trae-agent`。
-- OpenCode ACP docs are at `https://opencode.ai/docs/integrations/acp/`。
-- Antigravity CLI docs are at `https://antigravity.google/docs/cli-using`，but a stable non-interactive ACP or JSON contract still needs direct confirmation before implementing a real adapter.
+- Official TRAE CLI docs identify `traecli acp serve` as the ACP entry and `--print --json` as a non-interactive fallback. The public `bytedance/trae-agent` repository is useful research context, but should not be treated as the stable production adapter target.
+- DeepSeek official CLI research did not find a vendor-supported coding CLI. Community CodeWhale is non-official, but documents both `codewhale exec --auto --output-format stream-json` and `codewhale serve --acp`。
+- OpenCode ACP docs are at `https://opencode.ai/docs/integrations/acp/`。OpenCode also exposes `opencode run --format json` and `opencode serve` for non-ACP integration research.
+- Antigravity CLI docs are at `https://antigravity.google/docs/cli-using`。Official `agy --print` / `agy -p` supports limited text headless use, but ACP、JSON、and stream output still need direct confirmation before a richer adapter is claimed.
+- Kiro CLI ACP command shape is `kiro-cli acp`。
 
 ## Next Adapter Work
 

@@ -3,8 +3,11 @@ import test from "node:test";
 
 import {
   BUILTIN_ACP_HARNESSES,
+  BUILTIN_CLI_HEADLESS_HARNESSES,
+  BUILTIN_HARNESSES,
   PLANNED_HARNESSES,
   createBuiltinAcpAdapters,
+  createBuiltinCliHeadlessAdapters,
   createPlannedHarnessAdapters,
 } from "../scripts/lib/adapters/builtin-harnesses.mjs";
 import { renderSetupReport } from "../scripts/lib/runtime/render.mjs";
@@ -16,6 +19,7 @@ const REQUESTED_HARNESSES = [
   "antigravity-cli",
   "claude-code",
   "deepseek-tui",
+  "codewhale",
   "kimi-code",
   "trae-cli",
   "qoder-cli",
@@ -55,12 +59,48 @@ function setupAdapter(definition, overrides = {}) {
   };
 }
 
+function requireDefinition(definitions, id) {
+  const definition = definitions.find((candidate) => candidate.id === id);
+  assert.ok(definition, `${id} catalog entry missing`);
+  return definition;
+}
+
 test("built-in and planned harness catalog entries expose setup metadata", () => {
-  for (const definition of [...BUILTIN_ACP_HARNESSES, ...PLANNED_HARNESSES]) {
+  for (const definition of [...BUILTIN_HARNESSES, ...PLANNED_HARNESSES]) {
     assertCatalogMetadata(definition);
   }
+
   assert.ok(BUILTIN_ACP_HARNESSES.every((definition) => definition.protocol === "acp"));
   assert.ok(BUILTIN_ACP_HARNESSES.every((definition) => definition.maturity === "experimental"));
+
+  const antigravity = requireDefinition(BUILTIN_CLI_HEADLESS_HARNESSES, "antigravity-cli");
+  assert.equal(antigravity.protocol, "native-text");
+  assert.equal(antigravity.maturity, "experimental");
+  assert.match(antigravity.install, /agy --print/);
+  assert.match(antigravity.install, /ACP.*JSON.*stream/i);
+
+  const codewhale = requireDefinition(BUILTIN_CLI_HEADLESS_HARNESSES, "codewhale");
+  assert.equal(codewhale.protocol, "native-stream-json+acp");
+  assert.equal(codewhale.maturity, "experimental");
+  assert.match(codewhale.install, /codewhale exec --auto --output-format stream-json/);
+  assert.match(codewhale.install, /codewhale serve --acp/);
+  assert.match(codewhale.install, /not an official DeepSeek CLI/i);
+  assert.match(codewhale.source, /codewhale/i);
+  assert.ok(codewhale.aliases.includes("deepseek-tui"));
+
+  const kimiCode = requireDefinition(BUILTIN_CLI_HEADLESS_HARNESSES, "kimi-code");
+  assert.equal(kimiCode.protocol, "native-stream-json");
+  assert.equal(kimiCode.maturity, "experimental");
+  assert.match(kimiCode.install, /kimi -p --output-format stream-json/);
+  assert.doesNotMatch(kimiCode.install, /kimi acp/);
+
+  const traeCli = requireDefinition(BUILTIN_ACP_HARNESSES, "trae-cli");
+  assert.equal(traeCli.protocol, "acp");
+  assert.match(traeCli.install, /traecli acp serve/);
+  assert.match(traeCli.install, /--print --json/);
+
+  const kiroCli = requireDefinition(BUILTIN_ACP_HARNESSES, "kiro-cli");
+  assert.match(kiroCli.install, /kiro-cli acp/);
 });
 
 test("built-in ACP adapters expose catalog metadata to setup availability", async () => {
@@ -84,8 +124,29 @@ test("built-in ACP adapters expose catalog metadata to setup availability", asyn
   }
 });
 
+test("built-in native headless adapters expose catalog metadata to setup availability", async () => {
+  const adapters = createBuiltinCliHeadlessAdapters({
+    spawnSyncImpl: () => ({ status: 1, stderr: "not installed" }),
+  });
+
+  for (const definition of BUILTIN_CLI_HEADLESS_HARNESSES) {
+    const adapter = adapters.find((candidate) => candidate.id === definition.id);
+    assert.ok(adapter, `${definition.id} adapter missing`);
+    assert.equal(adapter.source, definition.source);
+    assert.equal(adapter.install, definition.install);
+    assert.equal(adapter.maturity, definition.maturity);
+    assert.equal(adapter.protocol, definition.protocol);
+
+    const availability = await adapter.checkAvailability();
+    assert.equal(availability.source, definition.source);
+    assert.equal(availability.install, definition.install);
+    assert.equal(availability.maturity, definition.maturity);
+    assert.equal(availability.protocol, definition.protocol);
+  }
+});
+
 test("setup report distinguishes stable, experimental, and planned harnesses", async () => {
-  const builtinById = new Map(BUILTIN_ACP_HARNESSES.map((definition) => [definition.id, definition]));
+  const builtin = (id) => requireDefinition(BUILTIN_HARNESSES, id);
   const [plannedAdapter] = createPlannedHarnessAdapters();
   const plannedAvailability = await plannedAdapter.checkAvailability();
   const plannedAuth = await plannedAdapter.checkAuth();
@@ -109,12 +170,13 @@ test("setup report distinguishes stable, experimental, and planned harnesses", a
         availability: { available: true, detail: "Claude CLI available." },
         auth: { loggedIn: true, detail: "Claude auth is available." },
       },
-      setupAdapter(builtinById.get("opencode")),
-      setupAdapter(builtinById.get("openclaw")),
-      setupAdapter(builtinById.get("deepseek-tui")),
-      setupAdapter(builtinById.get("kimi-code")),
-      setupAdapter(builtinById.get("trae-cli")),
-      setupAdapter(builtinById.get("qoder-cli")),
+      setupAdapter(builtin("opencode")),
+      setupAdapter(builtin("openclaw")),
+      setupAdapter(builtin("antigravity-cli")),
+      setupAdapter(builtin("codewhale")),
+      setupAdapter(builtin("kimi-code")),
+      setupAdapter(builtin("trae-cli")),
+      setupAdapter(builtin("qoder-cli")),
       {
         id: plannedAdapter.id,
         aliases: plannedAdapter.aliases,
@@ -135,9 +197,12 @@ test("setup report distinguishes stable, experimental, and planned harnesses", a
   for (const harness of REQUESTED_HARNESSES) {
     assert.match(output, new RegExp(`\\b${harness}\\b`));
   }
-  assert.match(output, /- antigravity-cli: planned, not runnable \(protocol: unverified\)/);
-  assert.doesNotMatch(output, /- antigravity-cli: unavailable/);
-  assert.doesNotMatch(output, /antigravity-cli: .*auth/);
+  assert.match(output, /- antigravity-cli: unavailable, auth unknown \(protocol: native-text\)/);
   assert.match(output, /source: https:\/\/antigravity\.google\/docs\/cli-using/);
-  assert.match(output, /install: No runnable install command is exposed/);
+  assert.match(output, /install: .*agy --print/);
+  assert.match(output, /- codewhale: unavailable, auth unknown \(protocol: native-stream-json\+acp\)/);
+  assert.match(output, /install: .*codewhale exec --auto --output-format stream-json/);
+  assert.match(output, /install: .*codewhale serve --acp/);
+  assert.match(output, /- kimi-code: unavailable, auth unknown \(protocol: native-stream-json\)/);
+  assert.match(output, /install: .*kimi -p --output-format stream-json/);
 });

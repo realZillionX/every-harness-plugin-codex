@@ -22,7 +22,7 @@
   "interface": {
     "displayName": "Every Harness",
     "shortDescription": "Delegate work to external agent harnesses",
-    "longDescription": "Use one Codex mailbox workflow to run, monitor, cancel, and set up external agent harness adapters such as Gemini ACP and Claude CLI.",
+    "longDescription": "Use one Codex mailbox workflow to run, monitor, cancel, and set up external agent harness adapters such as Gemini, Claude Code, OpenCode, Trae, Qoder, Kimi Code, CodeWhale, and Antigravity.",
     "developerName": "realZillionX",
     "category": "Coding",
     "capabilities": [

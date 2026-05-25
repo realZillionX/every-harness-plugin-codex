@@ -43,7 +43,7 @@ export function createGenericAcpAdapter(definition, options = {}) {
       }
       return {
         available: true,
-        detail: firstMeaningfulLine(result.stdout) ?? firstMeaningfulLine(result.stderr) ?? `${definition.displayName} probe succeeded.`,
+        detail: probe.successDetail ?? firstMeaningfulLine(result.stdout) ?? firstMeaningfulLine(result.stderr) ?? `${definition.displayName} probe succeeded.`,
         install: definition.install ?? null,
       };
     } catch (error) {
