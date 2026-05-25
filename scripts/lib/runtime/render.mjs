@@ -62,10 +62,18 @@ export function renderSetupReport(report) {
   const lines = ["Every Harness setup"];
   for (const adapter of report.adapters ?? []) {
     const availability = adapter.availability?.available ? "available" : "unavailable";
-    const auth = adapter.auth?.loggedIn ? "authenticated" : "auth needed";
-    lines.push(`- ${adapter.id}: ${availability}, ${auth}`);
+    const auth = adapter.auth?.loggedIn === true
+      ? "authenticated"
+      : adapter.auth?.loggedIn === false
+        ? "auth needed"
+        : "auth unknown";
+    const metadata = [adapter.protocol, adapter.maturity].filter(Boolean).join(", ");
+    lines.push(`- ${adapter.id}: ${availability}, ${auth}${metadata ? ` (${metadata})` : ""}`);
     if (adapter.availability?.detail) lines.push(`  availability: ${adapter.availability.detail}`);
     if (adapter.auth?.detail) lines.push(`  auth: ${adapter.auth.detail}`);
+    if (!adapter.availability?.available && (adapter.availability?.install || adapter.install)) {
+      lines.push(`  install: ${adapter.availability?.install ?? adapter.install}`);
+    }
   }
   if (report.hooks?.enabled) {
     lines.push("Hooks: enabled via [features].hooks");

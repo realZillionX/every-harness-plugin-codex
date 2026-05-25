@@ -160,7 +160,11 @@ export async function handleSetup(argv, env = process.env) {
   for (const adapter of selected) {
     adapters.push({
       id: adapter.id,
+      aliases: adapter.aliases ?? [],
       displayName: adapter.displayName,
+      maturity: adapter.maturity ?? "stable",
+      protocol: adapter.protocol ?? "native",
+      install: adapter.install ?? null,
       availability: await adapter.checkAvailability({ cwd, env }),
       auth: await adapter.checkAuth({ cwd, env }),
     });

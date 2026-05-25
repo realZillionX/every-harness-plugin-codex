@@ -111,6 +111,13 @@ test("built-in ACP harness catalog includes user-requested harnesses", () => {
     "qoder-cli",
     "trae-cli",
     "qwen-code",
+    "copilot-cli",
+    "cursor-agent",
+    "iflow-cli",
+    "kiro-cli",
+    "kilocode-cli",
+    "factory-droid",
+    "pi-coding-agent",
   ]) {
     assert.equal(ids.has(id), true, `${id} missing from catalog`);
   }

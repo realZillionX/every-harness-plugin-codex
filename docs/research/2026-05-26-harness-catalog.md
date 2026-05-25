@@ -19,7 +19,7 @@ Current implementation stance：
 | --- | --- | --- | --- |
 | Gemini CLI | `gemini-acp` | `gemini --acp` | Dedicated adapter implemented |
 | Claude Code | `claude-cli` | `claude -p --output-format stream-json` | Dedicated adapter implemented |
-| OpenCode | `opencode` | `opencode acp` | Generic ACP adapter implemented |
+| OpenCode | `opencode` | `npx -y opencode-ai acp` | Generic ACP adapter implemented |
 | OpenClaw | `openclaw` | `openclaw acp` | Generic ACP adapter implemented |
 | DeepSeek TUI | `deepseek-tui` | `deepseek serve --acp` | Generic ACP adapter implemented |
 | Kimi Code | `kimi-code` | `kimi acp` | Generic ACP adapter implemented |
@@ -32,6 +32,7 @@ Current implementation stance：
 | Kiro CLI | `kiro-cli` | `kiro-cli-chat acp` | Generic ACP adapter implemented |
 | Kilo Code CLI | `kilocode-cli` | `npx -y @kilocode/cli acp` | Generic ACP adapter implemented |
 | Factory Droid | `factory-droid` | `droid exec --output-format acp` | Generic ACP adapter implemented |
+| Pi Coding Agent | `pi-coding-agent` | `npx -y pi-acp` | Generic ACP adapter implemented |
 | Google Antigravity CLI | `antigravity-cli` | unverified headless contract | Cataloged as planned |
 
 ## Local Environment Findings
@@ -48,7 +49,7 @@ On the current machine：
 - Anthropic Claude Code npm metadata：`@anthropic-ai/claude-code` provides the `claude` binary and links to `https://github.com/anthropics/claude-code`。
 - Qwen Code npm metadata：`@qwen-code/qwen-code` provides the `qwen` binary and links to `https://github.com/QwenLM/qwen-code`。
 - Qoder CLI npm metadata：`@qoder-ai/qodercli` provides the `qodercli` binary and links to `https://github.com/nicepkg/qodercli`；Qoder docs also expose CLI and ACP documentation at `https://docs.qoder.com/cli/acp`。
-- ACP ecosystem references include the Agent Client Protocol SDK at `https://github.com/agentclientprotocol/typescript-sdk` and the `acpx` agent list at `https://acpx.sh/agents.html`。
+- ACP ecosystem references include the Agent Client Protocol SDK at `https://github.com/agentclientprotocol/typescript-sdk` and the `acpx` agent list at `https://acpx.sh/agents.html`。The `acpx` registry confirms ACP command shapes for OpenClaw、Cursor、Gemini、Copilot、Droid、Qoder、iFlow、Kilo Code、Kimi、Kiro、OpenCode、Qwen、Trae and Pi.
 - Trae Agent public source is at `https://github.com/bytedance/trae-agent`。
 - OpenCode ACP docs are at `https://opencode.ai/docs/integrations/acp/`。
 - Antigravity CLI docs are at `https://antigravity.google/docs/cli-using`，but a stable non-interactive ACP or JSON contract still needs direct confirmation before implementing a real adapter.

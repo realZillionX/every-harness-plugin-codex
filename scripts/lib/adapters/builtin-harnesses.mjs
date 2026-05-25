@@ -5,10 +5,11 @@ export const BUILTIN_ACP_HARNESSES = [
     id: "opencode",
     aliases: ["opencode-ai"],
     displayName: "OpenCode",
-    command: "opencode",
-    args: ["acp"],
-    install: "Install with `npm install -g opencode-ai` or use the upstream installer from opencode.ai.",
-    source: "https://opencode.ai/docs/integrations/acp/",
+    command: "npx",
+    args: ["-y", "opencode-ai", "acp"],
+    probe: { command: "npx", args: ["--version"] },
+    install: "Uses `npx -y opencode-ai acp` by default; global installs expose `opencode acp`.",
+    source: "https://acpx.sh/agents.html#opencode",
   },
   {
     id: "openclaw",
@@ -17,7 +18,7 @@ export const BUILTIN_ACP_HARNESSES = [
     command: "openclaw",
     args: ["acp"],
     install: "Install OpenClaw, then expose an `openclaw acp` command on PATH.",
-    source: "https://github.com/openclaw/acpx",
+    source: "https://acpx.sh/agents.html#openclaw",
   },
   {
     id: "deepseek-tui",
@@ -35,7 +36,7 @@ export const BUILTIN_ACP_HARNESSES = [
     command: "kimi",
     args: ["acp"],
     install: "Install Kimi Code and expose `kimi acp` on PATH.",
-    source: "https://github.com/MoonshotAI/kimi-code",
+    source: "https://acpx.sh/agents.html#kimi",
   },
   {
     id: "qoder-cli",
@@ -44,7 +45,7 @@ export const BUILTIN_ACP_HARNESSES = [
     command: "qodercli",
     args: ["--acp"],
     install: "Install with `npm install -g @qoder-ai/qodercli`.",
-    source: "https://docs.qoder.com/cli/acp",
+    source: "https://acpx.sh/agents.html#qoder",
   },
   {
     id: "trae-cli",
@@ -53,7 +54,7 @@ export const BUILTIN_ACP_HARNESSES = [
     command: "traecli",
     args: ["acp", "serve"],
     install: "Install Trae CLI from the official Trae distribution, then expose `traecli acp serve` on PATH.",
-    source: "https://github.com/bytedance/trae-agent",
+    source: "https://acpx.sh/agents.html#trae",
   },
   {
     id: "qwen-code",
@@ -62,7 +63,7 @@ export const BUILTIN_ACP_HARNESSES = [
     command: "qwen",
     args: ["--acp"],
     install: "Install with `npm install -g @qwen-code/qwen-code`.",
-    source: "https://github.com/QwenLM/qwen-code",
+    source: "https://acpx.sh/agents.html#qwen",
   },
   {
     id: "copilot-cli",
@@ -71,7 +72,7 @@ export const BUILTIN_ACP_HARNESSES = [
     command: "copilot",
     args: ["--acp", "--stdio"],
     install: "Install with `npm install -g @github/copilot`.",
-    source: "https://github.com/github/copilot-cli",
+    source: "https://acpx.sh/agents.html#copilot",
   },
   {
     id: "cursor-agent",
@@ -80,7 +81,7 @@ export const BUILTIN_ACP_HARNESSES = [
     command: "cursor-agent",
     args: ["acp"],
     install: "Install Cursor Agent from Cursor docs, then expose `cursor-agent acp` on PATH.",
-    source: "https://docs.cursor.com/cli",
+    source: "https://acpx.sh/agents.html#cursor",
   },
   {
     id: "iflow-cli",
@@ -89,7 +90,7 @@ export const BUILTIN_ACP_HARNESSES = [
     command: "iflow",
     args: ["--experimental-acp"],
     install: "Install iFlow CLI and expose `iflow --experimental-acp` on PATH.",
-    source: "https://github.com/iflow-ai/iflow-cli",
+    source: "https://acpx.sh/agents.html#iflow",
   },
   {
     id: "kiro-cli",
@@ -98,7 +99,7 @@ export const BUILTIN_ACP_HARNESSES = [
     command: "kiro-cli-chat",
     args: ["acp"],
     install: "Install Kiro CLI and expose `kiro-cli-chat acp` on PATH.",
-    source: "https://kiro.dev/docs/cli/",
+    source: "https://acpx.sh/agents.html#kiro",
   },
   {
     id: "kilocode-cli",
@@ -108,7 +109,7 @@ export const BUILTIN_ACP_HARNESSES = [
     args: ["-y", "@kilocode/cli", "acp"],
     probe: { command: "npx", args: ["--version"] },
     install: "Uses `npx -y @kilocode/cli acp` by default.",
-    source: "https://github.com/Kilo-Org/kilocode",
+    source: "https://acpx.sh/agents.html#kilocode",
   },
   {
     id: "factory-droid",
@@ -117,7 +118,17 @@ export const BUILTIN_ACP_HARNESSES = [
     command: "droid",
     args: ["exec", "--output-format", "acp"],
     install: "Install Factory Droid, then expose `droid exec --output-format acp` on PATH.",
-    source: "https://docs.factory.ai/droid",
+    source: "https://acpx.sh/agents.html#droid-factory",
+  },
+  {
+    id: "pi-coding-agent",
+    aliases: ["pi"],
+    displayName: "Pi Coding Agent",
+    command: "npx",
+    args: ["-y", "pi-acp"],
+    probe: { command: "npx", args: ["--version"] },
+    install: "Uses `npx -y pi-acp` by default.",
+    source: "https://acpx.sh/agents.html#pi",
   },
 ];
 
