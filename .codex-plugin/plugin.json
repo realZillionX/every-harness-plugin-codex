@@ -18,11 +18,10 @@
     "delegation"
   ],
   "skills": "./skills/",
-  "hooks": "./hooks/hooks.json",
   "interface": {
     "displayName": "Every Harness",
     "shortDescription": "Delegate work to external agent harnesses",
-    "longDescription": "Use one Codex mailbox workflow to run, monitor, cancel, and set up external agent harness adapters such as Gemini, Claude Code, OpenCode, Trae, Qoder, Kimi Code, CodeWhale, and Antigravity.",
+    "longDescription": "Agent-internal CLI for delegating work to external harnesses such as Gemini, Claude Code, OpenCode, Trae, Qoder, Kimi Code, CodeWhale, and Antigravity.",
     "developerName": "realZillionX",
     "category": "Coding",
     "capabilities": [
@@ -33,9 +32,9 @@
     "privacyPolicyURL": "https://github.com/realZillionX/every-harness-plugin-codex#privacy",
     "termsOfServiceURL": "https://github.com/realZillionX/every-harness-plugin-codex#license",
     "defaultPrompt": [
-      "Run an external harness with $every-harness:run --harness fake",
-      "Check external harness work with $every-harness:status",
-      "Verify adapters with $every-harness:setup"
+      "Use ehplugin run to delegate scoped work to an external harness",
+      "Use ehplugin status to inspect delegated work",
+      "Use ehplugin cancel to stop active delegated work"
     ],
     "brandColor": "#10A37F"
   }

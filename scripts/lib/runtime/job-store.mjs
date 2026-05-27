@@ -160,39 +160,3 @@ export function cleanupOldJobs(cwd, { maxTerminalJobs = 100 } = {}, env = proces
     try { fs.unlinkSync(resolveJobLogFile(cwd, job.id, env)); } catch {}
   }
 }
-
-export function setCurrentSession(cwd, sessionId, env = process.env) {
-  ensureStateDir(cwd, env);
-  writeAtomic(path.join(resolveStateDir(cwd, env), "current-session.json"), {
-    sessionId: sanitizeId(sessionId, "session ID"),
-    updatedAt: nowIso(),
-  });
-}
-
-export function getCurrentSession(cwd, env = process.env) {
-  try {
-    const payload = JSON.parse(fs.readFileSync(path.join(resolveStateDir(cwd, env), "current-session.json"), "utf8"));
-    return sanitizeId(payload.sessionId, "session ID");
-  } catch {
-    return null;
-  }
-}
-
-export function clearCurrentSession(cwd, env = process.env) {
-  try { fs.unlinkSync(path.join(resolveStateDir(cwd, env), "current-session.json")); } catch {}
-}
-
-export function readConfig(cwd, env = process.env) {
-  try {
-    return JSON.parse(fs.readFileSync(path.join(resolveStateDir(cwd, env), "config.json"), "utf8"));
-  } catch {
-    return { version: 1, stopReviewGate: false, defaultHarness: null };
-  }
-}
-
-export function writeConfig(cwd, config, env = process.env) {
-  ensureStateDir(cwd, env);
-  const next = { version: 1, stopReviewGate: false, defaultHarness: null, ...config };
-  writeAtomic(path.join(resolveStateDir(cwd, env), "config.json"), next);
-  return next;
-}

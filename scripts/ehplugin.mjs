@@ -3,7 +3,7 @@
 import { registerAdapter } from "./lib/adapters/registry.mjs";
 import { fakeAdapter } from "./lib/adapters/fake.mjs";
 import { createBuiltinHarnessAdapters, createPlannedHarnessAdapters } from "./lib/adapters/builtin-harnesses.mjs";
-import { handleCancel, handleRun, handleSetup, handleStatus, handleWorker } from "./lib/runtime/mailbox-runtime.mjs";
+import { handleCancel, handleRun, handleStatus, handleWorker } from "./lib/runtime/mailbox-runtime.mjs";
 
 async function registerBuiltInAdapters() {
   registerAdapter(fakeAdapter);
@@ -22,7 +22,7 @@ async function registerBuiltInAdapters() {
         registerAdapter(adapter, adapter.aliases ?? []);
       }
     } catch {
-      // Optional adapter file may not exist during early development.
+      // Optional adapter files may be absent in minimal builds.
     }
   }
 }
@@ -32,9 +32,6 @@ async function main() {
   const [command, ...argv] = process.argv.slice(2);
   try {
     switch (command) {
-      case "setup":
-        await handleSetup(argv);
-        break;
       case "run":
         await handleRun(argv);
         break;
@@ -44,11 +41,11 @@ async function main() {
       case "cancel":
         await handleCancel(argv);
         break;
-      case "worker":
+      case "__worker":
         await handleWorker(argv);
         break;
       default:
-        throw new Error("Usage: every-harness-companion.mjs <setup|run|status|cancel|worker> [args]");
+        throw new Error("Usage: ehplugin <run|status|cancel> [args]");
     }
   } catch (error) {
     process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);

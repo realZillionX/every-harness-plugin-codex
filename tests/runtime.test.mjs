@@ -3,26 +3,18 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { fileURLToPath } from "node:url";
 
 import { createFakeAdapter } from "../scripts/lib/adapters/fake.mjs";
 import { clearAdapters, registerAdapter } from "../scripts/lib/adapters/registry.mjs";
 import { parseCommandArgs, splitRawArgumentString } from "../scripts/lib/runtime/args.mjs";
-import { ensureCodexHooksEnabled } from "../scripts/lib/runtime/codex-config.mjs";
 import {
   createJob,
-  getCurrentSession,
   listJobs,
-  readConfig,
   readJob,
   resolvePluginDataRoot,
 } from "../scripts/lib/runtime/job-store.mjs";
-import { installCodexHooks, inspectCodexHookSetup } from "../scripts/lib/runtime/hook-install.mjs";
-import { handleCancel, handleRun, handleSetup, handleStatus } from "../scripts/lib/runtime/mailbox-runtime.mjs";
+import { handleCancel, handleRun, handleStatus } from "../scripts/lib/runtime/mailbox-runtime.mjs";
 import { publicJobPayload, sanitizePublic } from "../scripts/lib/runtime/render.mjs";
-
-const TEST_DIR = path.dirname(fileURLToPath(import.meta.url));
-const PLUGIN_ROOT = path.resolve(TEST_DIR, "..");
 
 function makeTempWorkspace() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "every-harness-test-"));
@@ -58,31 +50,6 @@ test("parses shell-like command arguments", () => {
   });
   assert.throws(() => splitRawArgumentString("'unterminated"), /Unterminated/);
   assert.throws(() => parseCommandArgs(["--unknown"]), /Unknown option/);
-});
-
-test("updates Codex config with modern hooks feature only", () => {
-  const input = [
-    "model = \"gpt-5\"",
-    "",
-    "[features]",
-    "codex_hooks = true",
-    "hooks = false",
-    "",
-    "[tools]",
-    "web_search = true",
-    "",
-  ].join("\n");
-
-  const result = ensureCodexHooksEnabled(input);
-  assert.equal(result.changed, true);
-  assert.match(result.content, /\[features\]\nhooks = true/);
-  assert.doesNotMatch(result.content, /codex_hooks/);
-  assert.match(result.content, /\[tools\]\nweb_search = true/);
-
-  assert.deepEqual(ensureCodexHooksEnabled(result.content), {
-    changed: false,
-    content: result.content,
-  });
 });
 
 test("job state is workspace-scoped and public payloads are sanitized", () => {
@@ -126,17 +93,6 @@ test("mailbox runtime runs, reports, and cancels fake jobs", async () => {
   clearAdapters();
   registerAdapter(createFakeAdapter({ aliases: ["mock"] }));
 
-  assert.equal(inspectCodexHookSetup(PLUGIN_ROOT, env).enabled, false);
-  installCodexHooks(PLUGIN_ROOT, env);
-  assert.equal(inspectCodexHookSetup(PLUGIN_ROOT, env).enabled, true);
-
-  const setup = await captureStdout(() =>
-    handleSetup(["--cwd", cwd, "--harness", "mock", "--json"], env),
-  );
-  assert.equal(JSON.parse(setup.text).adapters[0].id, "fake");
-  assert.equal(JSON.parse(setup.text).hooks.enabled, true);
-  assert.equal(readConfig(cwd, env).stopReviewGate, false);
-
   const foreground = await captureStdout(() =>
     handleRun(["--cwd", cwd, "--harness", "fake", "--json", "hello world"], env),
   );
@@ -154,7 +110,6 @@ test("mailbox runtime runs, reports, and cancels fake jobs", async () => {
   const queued = createJob(cwd, {
     id: "manual-queued",
     harnessId: "fake",
-    ownerSessionId: getCurrentSession(cwd, env),
     status: "queued",
     phase: "queued",
   }, env);

@@ -193,7 +193,7 @@ export function createGeminiAcpAdapter(options = {}) {
       loggedIn: availability.available,
       confidence: "binary-only",
       detail: availability.available
-        ? "Gemini auth is not validated during setup; runtime uses GOOGLE_API_KEY or Application Default Credentials."
+        ? "Gemini auth is not prevalidated; runtime uses GOOGLE_API_KEY or Application Default Credentials."
         : "Gemini auth cannot be checked because the CLI is unavailable.",
       permissionPolicies: describeGeminiPermissionPolicies(options),
     };

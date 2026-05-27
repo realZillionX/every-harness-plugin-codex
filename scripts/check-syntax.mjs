@@ -4,7 +4,7 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 
-const roots = ["scripts", "hooks", "tests"];
+const roots = ["scripts", "tests"];
 const files = [];
 
 function walk(dir) {

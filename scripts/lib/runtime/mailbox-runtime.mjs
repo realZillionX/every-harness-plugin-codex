@@ -8,22 +8,18 @@ import {
   cleanupOldJobs,
   createJob,
   findActiveJob,
-  getCurrentSession,
   listJobs,
   patchJob,
-  readConfig,
   readJob,
   resolveJobLogFile,
   transitionJob,
-  writeConfig,
 } from "./job-store.mjs";
-import { publicJobPayload, renderJson, renderMailboxJob, renderSetupReport, renderStatus } from "./render.mjs";
-import { listAdapters, resolveHarnessSelection } from "../adapters/registry.mjs";
-import { inspectCodexHookSetup } from "./hook-install.mjs";
+import { publicJobPayload, renderJson, renderMailboxJob, renderStatus } from "./render.mjs";
+import { resolveHarnessSelection } from "../adapters/registry.mjs";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
 const PLUGIN_ROOT = path.resolve(path.dirname(THIS_FILE), "..", "..", "..");
-const COMPANION_PATH = path.join(PLUGIN_ROOT, "scripts", "every-harness-companion.mjs");
+const EHPLUGIN_PATH = path.join(PLUGIN_ROOT, "scripts", "ehplugin.mjs");
 const DEFAULT_WAIT_TIMEOUT_MS = 240_000;
 const DEFAULT_POLL_INTERVAL_MS = 2_000;
 
@@ -127,7 +123,7 @@ export async function runJob(cwd, job, adapter, request, env = process.env) {
 }
 
 function spawnWorker(cwd, jobId, env) {
-  const child = spawn(process.execPath, [COMPANION_PATH, "worker", "--cwd", cwd, "--job-id", jobId], {
+  const child = spawn(process.execPath, [EHPLUGIN_PATH, "__worker", "--cwd", cwd, "--job-id", jobId], {
     cwd,
     env,
     detached: true,
@@ -149,46 +145,15 @@ async function waitForIdle(cwd, env, { harnessId = null, timeoutMs = DEFAULT_WAI
   return { timedOut: true };
 }
 
-export async function handleSetup(argv, env = process.env) {
-  const { options } = parseCommandArgs(argv);
-  const cwd = resolveCwd(options);
-  const config = readConfig(cwd, env);
-  if (options["enable-review-gate"]) writeConfig(cwd, { ...config, stopReviewGate: true }, env);
-  if (options["disable-review-gate"]) writeConfig(cwd, { ...config, stopReviewGate: false }, env);
-  const selected = options.harness ? [resolveHarnessSelection({ requestedHarness: options.harness })] : listAdapters();
-  const adapters = [];
-  for (const adapter of selected) {
-    adapters.push({
-      id: adapter.id,
-      aliases: adapter.aliases ?? [],
-      displayName: adapter.displayName,
-      maturity: adapter.maturity ?? "stable",
-      protocol: adapter.protocol ?? "native",
-      install: adapter.install ?? null,
-      availability: await adapter.checkAvailability({ cwd, env }),
-      auth: await adapter.checkAuth({ cwd, env }),
-    });
-  }
-  const nextConfig = readConfig(cwd, env);
-  const report = {
-    adapters,
-    hooks: inspectCodexHookSetup(PLUGIN_ROOT, env),
-    reviewGate: nextConfig.stopReviewGate,
-  };
-  output(options.json ? report : renderSetupReport(report), options.json);
-  return report;
-}
-
 export async function handleRun(argv, env = process.env) {
   const { options, positionals } = parseCommandArgs(argv);
   if (options.background && options.wait) throw new Error("Choose either --background or --wait.");
   if (options.write && options["read-only"]) throw new Error("Choose either --write or --read-only.");
   const cwd = resolveCwd(options);
-  const config = readConfig(cwd, env);
-  const adapter = resolveHarnessSelection({ requestedHarness: options.harness, defaultHarness: config.defaultHarness });
+  const adapter = resolveHarnessSelection({ requestedHarness: options.harness });
   const prompt = readPrompt(cwd, options, positionals);
   if (!prompt) throw new Error("Provide task text or --prompt-file.");
-  const ownerSessionId = options["owner-session-id"] ?? env.EVERY_HARNESS_SESSION_ID ?? getCurrentSession(cwd, env) ?? null;
+  const ownerSessionId = options["owner-session-id"] ?? env.EVERY_HARNESS_SESSION_ID ?? null;
   const active = findActiveJob(cwd, { harnessId: adapter.id, ownerSessionId }, env);
   if (active) throw new Error(`${adapter.displayName} already has active work in this session.`);
   const job = createJob(cwd, {
@@ -242,11 +207,10 @@ export async function handleStatus(argv, env = process.env) {
 export async function handleCancel(argv, env = process.env) {
   const { options } = parseCommandArgs(argv);
   const cwd = resolveCwd(options);
-  const config = readConfig(cwd, env);
   const adapter = options.harness
     ? resolveHarnessSelection({ requestedHarness: options.harness })
     : null;
-  const harnessId = adapter?.id ?? config.defaultHarness ?? null;
+  const harnessId = adapter?.id ?? null;
   const job = findActiveJob(cwd, { harnessId }, env);
   if (!job) {
     const payload = { status: "idle", reason: "No active Every Harness job." };

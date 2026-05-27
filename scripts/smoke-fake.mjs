@@ -9,7 +9,7 @@ const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "every-harness-smoke-"));
 const env = { ...process.env, PLUGIN_DATA: path.join(tmp, "plugin-data") };
 
 function run(args) {
-  const result = spawnSync(process.execPath, ["scripts/every-harness-companion.mjs", ...args], {
+  const result = spawnSync(process.execPath, ["scripts/ehplugin.mjs", ...args], {
     cwd: process.cwd(),
     env,
     encoding: "utf8",
@@ -21,7 +21,6 @@ function run(args) {
   return result.stdout;
 }
 
-run(["setup", "--harness", "fake", "--json"]);
 run(["run", "--harness", "fake", "--json", "smoke foreground"]);
 run(["run", "--harness", "fake", "--background", "smoke background"]);
 run(["status", "--harness", "fake", "--wait", "--json", "--timeout-ms", "5000", "--poll-interval-ms", "100"]);

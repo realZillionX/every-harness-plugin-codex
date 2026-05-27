@@ -144,12 +144,6 @@ export function parseCommandArgs(argv) {
       "background",
       "write",
       "read-only",
-      "resume",
-      "resume-last",
-      "fresh",
-      "enable-review-gate",
-      "disable-review-gate",
-      "quiet-progress",
     ],
     aliasMap: {
       C: "cwd",

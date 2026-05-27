@@ -1,30 +1,51 @@
 # Every Harness Plugin for Codex
 
-Delegate Codex work to external agent harnesses through one mailbox runtime.
+Every Harness is a small Codex plugin that gives the agent one local CLI for delegating work to other agent harnesses.
 
-Codex remains the planner and coordinator. A selected harness adapter owns scoped execution. The plugin owns local state, progress rendering, cancellation, and hooks.
+This is not a user-facing slash-command toolkit. The plugin provides one Skill that teaches Codex how to use `ehplugin` when delegation is useful. The only public CLI surface is:
 
-## Public Commands
-
-| Command | Purpose |
-| --- | --- |
-| `$every-harness:run` | Start one delegated harness request |
-| `$every-harness:status` | Show sanitized mailbox state |
-| `$every-harness:cancel` | Cancel the active delegated job |
-| `$every-harness:setup` | Check adapter readiness and hook configuration |
-
-Typical use：
-
-```text
-$every-harness:run --harness gemini-acp inspect the current diff
-$every-harness:run --harness claude-cli --write fix the failing parser test
-$every-harness:status --all
-$every-harness:cancel --harness gemini-acp
+```bash
+ehplugin run --harness <id> [options] <task text>
+ehplugin status [options]
+ehplugin cancel [options]
 ```
 
-## Built-In Harnesses
+Codex remains the planner and coordinator. A selected harness owns scoped execution. `ehplugin` owns the local mailbox state, status rendering, cancellation, and adapter routing.
 
-Every Harness is intended to cover real coding-agent harnesses, not only provide an abstract adapter API. Current built-in targets：
+## CLI
+
+Installers expose `ehplugin` as the CLI. The local plugin installer places a shim at `~/.local/bin/ehplugin`。
+
+```bash
+ehplugin run --harness gemini-acp inspect the current diff
+ehplugin run --harness claude-cli --write fix the failing parser test
+ehplugin run --harness kimi-code --background summarize this repo
+ehplugin status --all
+ehplugin cancel --harness kimi-code
+```
+
+Supported `run` options:
+
+- `--harness <id>`
+- `--background`
+- `--write`
+- `--read-only`
+- `--model <model>`
+- `--effort <effort>`
+- `--prompt-file <path>`
+- free-text task text
+
+Supported `status` options:
+
+- `--harness <id>`
+- `--all`
+- `--wait`
+
+Supported `cancel` options:
+
+- `--harness <id>`
+
+## Built-In Harnesses
 
 - `fake`：deterministic local adapter for tests and smoke checks.
 - `gemini-acp` / `gemini-cli`：Gemini CLI through ACP.
@@ -50,10 +71,6 @@ Official Pi Coding Agent is tracked separately as `pi-coding-agent` and needs a 
 Antigravity support is deliberately limited to text headless mode because ACP、JSON、and streaming contracts are not confirmed.
 
 See [docs/research/2026-05-26-harness-catalog.md](docs/research/2026-05-26-harness-catalog.md) for the current source matrix.
-
-## Hooks
-
-The plugin bundles lifecycle hooks for session routing, unread background result notices, and optional stop-time review gates. Hook setup must enable `[features].hooks` in `config.toml`。The deprecated `[features].codex_hooks` key is not generated.
 
 ## Development
 
