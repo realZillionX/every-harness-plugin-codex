@@ -15,7 +15,6 @@ import {
 const REQUIRED_HARNESSES = [
   "opencode",
   "openclaw",
-  "gemini-cli",
   "antigravity-cli",
   "claude-code",
   "deepseek-tui",
@@ -47,7 +46,7 @@ test("harness catalog keeps concrete harnesses explicit", () => {
     assertCatalogMetadata(definition);
   }
 
-  const dedicatedAliases = new Set(["gemini-acp", "gemini", "gemini-cli", "claude-cli", "claude", "claude-code"]);
+  const dedicatedAliases = new Set(["claude-cli", "claude", "claude-code"]);
   for (const id of REQUIRED_HARNESSES) {
     if (!dedicatedAliases.has(id)) {
       requireDefinition(BUILTIN_HARNESSES, id);

@@ -16,7 +16,7 @@ No active tracked tasks.
 
 当前 adapter 覆盖分三类：
 
-- 专用 adapter：`fake`、`gemini-acp`、`claude-cli`。
+- 专用 adapter：`fake`、`claude-cli`。
 - 通用 ACP adapter：OpenCode、OpenClaw、Qoder CLI、Trae CLI、Qwen Code、GitHub Copilot CLI、Cursor Agent、iFlow CLI、Kiro CLI、Kilo Code CLI、Factory Droid 和 community Pi ACP bridge。
 - 通用 native headless adapter：Antigravity text output、Kimi Code stream JSON 和 CodeWhale stream JSON。
 
@@ -45,7 +45,6 @@ Adapter 边界：
 
 - `scripts/lib/adapters/registry.mjs`：adapter 注册、别名和选择。
 - `scripts/lib/adapters/fake.mjs`：确定性 adapter，用于单测和 smoke。
-- `scripts/lib/adapters/gemini-acp.mjs`：Gemini ACP adapter，包含模型别名、ACP flag 检测、权限策略、progress 归一和 session cancel fallback。
 - `scripts/lib/adapters/claude-cli.mjs`：Claude CLI adapter，包含模型与 effort 别名、`stream-json` parser、read-only tool defaults、CLI probe 和进程组取消。
 - `scripts/lib/adapters/acp-generic.mjs`：通用 ACP JSON-RPC adapter，用于已有明确 ACP 入口的具体 harness。
 - `scripts/lib/adapters/cli-headless.mjs`：通用 native headless adapter，用于 Antigravity text output、Kimi Code stream JSON 和 CodeWhale stream JSON。
@@ -54,7 +53,6 @@ Adapter 边界：
 测试覆盖：
 
 - `tests/runtime.test.mjs`：参数解析、job store、公开输出脱敏和 mailbox 主流程。
-- `tests/gemini-acp.test.mjs`：Gemini ACP adapter 行为。
 - `tests/claude-cli.test.mjs`：Claude CLI stream parser、参数构建和 probe 行为。
 - `tests/acp-generic.test.mjs`：generic ACP JSON-RPC fake process、cancel 和 catalog 边界。
 - `tests/cli-headless.test.mjs`：native text 和 stream JSON adapter 行为。

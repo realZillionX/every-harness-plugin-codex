@@ -13,17 +13,12 @@ async function registerBuiltInAdapters() {
   for (const adapter of createPlannedHarnessAdapters()) {
     registerAdapter(adapter, adapter.aliases ?? []);
   }
-  for (const modulePath of ["./lib/adapters/gemini-acp.mjs", "./lib/adapters/claude-cli.mjs"]) {
-    try {
-      const mod = await import(modulePath);
-      const factory = mod.createGeminiAcpAdapter ?? mod.createClaudeCliAdapter;
-      if (factory) {
-        const adapter = factory();
-        registerAdapter(adapter, adapter.aliases ?? []);
-      }
-    } catch {
-      // Optional adapter files may be absent in minimal builds.
-    }
+  try {
+    const { createClaudeCliAdapter } = await import("./lib/adapters/claude-cli.mjs");
+    const adapter = createClaudeCliAdapter();
+    registerAdapter(adapter, adapter.aliases ?? []);
+  } catch {
+    // Optional adapter files may be absent in minimal builds.
   }
 }
 

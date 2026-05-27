@@ -21,7 +21,7 @@
   "interface": {
     "displayName": "Every Harness",
     "shortDescription": "Delegate work to external agent harnesses",
-    "longDescription": "Agent-internal CLI for delegating work to external harnesses such as Gemini, Claude Code, OpenCode, Trae, Qoder, Kimi Code, CodeWhale, and Antigravity.",
+    "longDescription": "Agent-internal CLI for delegating work to external harnesses such as Antigravity, Claude Code, OpenCode, Trae, Qoder, Kimi Code, and CodeWhale.",
     "developerName": "realZillionX",
     "category": "Coding",
     "capabilities": [

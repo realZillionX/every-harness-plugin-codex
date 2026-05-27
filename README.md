@@ -17,7 +17,7 @@ Codex remains the planner and coordinator. A selected harness owns scoped execut
 Installers expose `ehplugin` as the CLI. The local plugin installer places a shim at `~/.local/bin/ehplugin`。
 
 ```bash
-ehplugin run --harness gemini-acp inspect the current diff
+ehplugin run --harness antigravity-cli inspect the current diff
 ehplugin run --harness claude-cli --write fix the failing parser test
 ehplugin run --harness kimi-code --background summarize this repo
 ehplugin status --all
@@ -48,7 +48,6 @@ Supported `cancel` options:
 ## Built-In Harnesses
 
 - `fake`：deterministic local adapter for tests and smoke checks.
-- `gemini-acp` / `gemini-cli`：Gemini CLI through ACP.
 - `claude-cli` / `claude-code`：Claude Code through `claude -p` stream JSON.
 - `antigravity-cli`：Google Antigravity CLI through limited `agy --print` text headless execution.
 - `opencode`：OpenCode through ACP.

@@ -8,7 +8,6 @@ The first scalable integration path is Agent Client Protocol (ACP). Several newe
 
 Current implementation stance：
 
-- Gemini CLI：keep the dedicated `gemini-acp` adapter because the local CLI already supports `--acp` and has known permission-mode behavior.
 - Claude Code：keep the dedicated `claude-cli` adapter because `claude -p --output-format stream-json` exposes mature non-interactive execution, session IDs, partial messages, tool events, and structured output.
 - ACP-capable harnesses：register first-class built-in ACP adapters, not a user-defined “generic interface” only.
 - Headless native harnesses：prefer the richer native contract when it exists. For example, latest Kimi Code should use `kimi -p --output-format stream-json` instead of defaulting to legacy `kimi acp` from older `kimi-cli` notes.
@@ -18,7 +17,6 @@ Current implementation stance：
 
 | Harness | Adapter ID | Command Path | Status |
 | --- | --- | --- | --- |
-| Gemini CLI | `gemini-acp` | `gemini --acp` | Dedicated adapter implemented |
 | Claude Code | `claude-cli` | `claude -p --output-format stream-json` | Dedicated adapter implemented |
 | OpenCode | `opencode` | `opencode acp`; `opencode run --format json`; `opencode serve` | Generic ACP adapter implemented; native JSON path needs dedicated follow-up |
 | OpenClaw | `openclaw` | `openclaw acp` | Generic ACP adapter implemented |
@@ -43,17 +41,15 @@ Current implementation stance：
 
 On the current machine：
 
-- `gemini` exists at `/Users/zillionx/.local/bin/gemini` and reports version `0.43.0`。Its help confirms `--acp` and non-interactive `-p/--prompt` with `--output-format text|json|stream-json`。
 - `claude` exists at `/Users/zillionx/.local/bin/claude` and reports version `2.1.114`。Its help confirms `-p/--print`、`--output-format text|json|stream-json`、`--include-partial-messages`、`--session-id`、`--resume`、and `--permission-mode`。
 - `opencode`、`openclaw`、`deepseek`、`codewhale`、`kimi`、`trae`、`qodercli`、`qwen`、`copilot`、`cursor-agent`、`iflow`、`kiro-cli`、`droid`、and `agy` are not currently installed on this machine.
 
 ## Source Notes
 
-- Google Gemini CLI npm metadata：`@google/gemini-cli` provides the `gemini` binary and links to `https://github.com/google-gemini/gemini-cli`。
 - Anthropic Claude Code npm metadata：`@anthropic-ai/claude-code` provides the `claude` binary and links to `https://github.com/anthropics/claude-code`。
 - Qwen Code npm metadata：`@qwen-code/qwen-code` provides the `qwen` binary and links to `https://github.com/QwenLM/qwen-code`。
 - Qoder CLI npm metadata：`@qoder-ai/qodercli` provides the `qodercli` binary and links to `https://github.com/nicepkg/qodercli`；Qoder docs also expose CLI and ACP documentation at `https://docs.qoder.com/cli/acp`。
-- ACP ecosystem references include the Agent Client Protocol SDK at `https://github.com/agentclientprotocol/typescript-sdk` and the `acpx` agent list at `https://acpx.sh/agents.html`。The `acpx` registry confirms ACP command shapes for OpenClaw、Cursor、Gemini、Copilot、Droid、Qoder、iFlow、Kilo Code、legacy Kimi CLI、Kiro、OpenCode、Qwen、Trae and the community Pi ACP bridge.
+- ACP ecosystem references include the Agent Client Protocol SDK at `https://github.com/agentclientprotocol/typescript-sdk` and the `acpx` agent list at `https://acpx.sh/agents.html`。The `acpx` registry confirms ACP command shapes for OpenClaw、Cursor、Copilot、Droid、Qoder、iFlow、Kilo Code、legacy Kimi CLI、Kiro、OpenCode、Qwen、Trae and the community Pi ACP bridge.
 - Official Pi Coding Agent is separate from `pi-acp`。Its public quickstart describes `@earendil-works/pi-coding-agent` with `pi --mode rpc` / `pi --mode json` integration modes, so it should get a dedicated adapter rather than being represented as an ACP harness.
 - Official TRAE CLI docs identify `traecli acp serve` as the ACP entry and `--print --json` as a non-interactive fallback. The public `bytedance/trae-agent` repository is useful research context, but should not be treated as the stable production adapter target.
 - DeepSeek official CLI research did not find a vendor-supported coding CLI. Community CodeWhale is non-official, but documents both `codewhale exec --auto --output-format stream-json` and `codewhale serve --acp`。
