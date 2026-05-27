@@ -26,7 +26,7 @@ Both plugins share the same Codex-facing design：
 - `skills/run`、`skills/status`、`skills/cancel`、`skills/setup` are the only recommended public Agent entry points。
 - `scripts/*-companion.mjs` owns the companion CLI.
 - `scripts/lib/` owns state, rendering, process, config, install, and harness-specific execution helpers.
-- `hooks/hooks.json` registers `SessionStart`、`SessionEnd`、`Stop`、`UserPromptSubmit` hooks.
+- `hooks/hooks.json` registers `SessionStart`、`Stop`、`UserPromptSubmit` hooks. Codex 当前 hook schema 不包含 `SessionEnd`；旧设计里把 cleanup 接到 `SessionEnd` 的假设不会在当前 Codex 中生效。
 - `schemas/review-output.schema.json` supports structured review output.
 - Normal public output is intentionally sanitized：foreground `run` returns the delegated final reply, but background completion and status output stay mailbox-only.
 

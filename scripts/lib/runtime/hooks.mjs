@@ -1,11 +1,8 @@
 import {
-  ACTIVE_JOB_STATUSES,
-  clearCurrentSession,
   listJobs,
   patchJob,
   readConfig,
   setCurrentSession,
-  transitionJob,
 } from "./job-store.mjs";
 
 export function parseHookInput(text) {
@@ -26,21 +23,6 @@ export function handleSessionStart(input, { cwd = process.cwd(), env = process.e
       additionalContext: "Every Harness mailbox routing is active.",
     },
   };
-}
-
-export function handleSessionEnd(input, { cwd = process.cwd(), env = process.env } = {}) {
-  const sessionId = input.session_id ?? input.sessionId ?? env.CODEX_SESSION_ID ?? null;
-  for (const job of listJobs(cwd, env)) {
-    if (sessionId && job.ownerSessionId && job.ownerSessionId !== sessionId) continue;
-    if (ACTIVE_JOB_STATUSES.has(job.status)) {
-      transitionJob(cwd, job.id, [job.status], "cancelled", {
-        phase: "cancelled",
-        summary: "Session ended before delegated work completed.",
-      }, env);
-    }
-  }
-  clearCurrentSession(cwd, env);
-  return { continue: true };
 }
 
 export function handleUnreadResult(_input, { cwd = process.cwd(), env = process.env } = {}) {

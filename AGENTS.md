@@ -10,7 +10,9 @@ No active tracked tasks.
 
 最新 harness 调研结论：OpenCode 真实入口包括 `opencode acp`、`opencode run --format json` 和 `opencode serve`；TRAE CLI 官方 ACP 入口是 `traecli acp serve`，`--print --json` 是备选，`bytedance/trae-agent` 只能作为研究参考；DeepSeek 官方 CLI 未找到，CodeWhale 是非官方社区实现，支持 `codewhale exec --auto --output-format stream-json` 和 `codewhale serve --acp`；最新 Kimi Code 应优先 `kimi -p --output-format stream-json`，旧 `kimi acp` 属于 legacy `kimi-cli`；Pi 官方和 community `pi-acp` bridge 必须分开；Kiro 命令为 `kiro-cli acp`。
 
-当前验证结果：`npm run check` 覆盖 `32` 个 JavaScript 文件语法检查和 `42` 个 Node.js 单测；`npm run smoke:fake` 覆盖 companion CLI 前台、后台、status wait 和 cancel 路径；`npm run pack:dry-run` 确认发布包包含 `39` 个文件。
+Codex 源码调研结论：Codex 当前没有可由 plugin 注册的通用 harness adapter API。Plugin 官方边界是 skills、MCP servers、apps 和 hooks 的本地 bundle；内置 multi-agent 是 Codex-to-Codex thread tree，不是外部 harness 抽象。因此 Every Harness 应继续把外部 harness adapter 内聚在 companion runtime 后面，通过 `$every-harness:*` skills 暴露给 Codex。Codex 当前支持 `SessionStart`、`UserPromptSubmit`、`Stop`、`SubagentStart` 和 `SubagentStop` 等 hook event，但不支持 `SessionEnd`。
+
+当前验证结果：`npm run check` 覆盖 `32` 个 JavaScript 文件语法检查和 `43` 个 Node.js 单测；`npm run smoke:fake` 覆盖 companion CLI 前台、后台、status wait 和 cancel 路径；`npm run pack:dry-run` 确认发布包包含 `40` 个文件。
 
 # Repository Analysis
 
@@ -34,7 +36,7 @@ Runtime 数据流：
 - `scripts/lib/runtime/job-store.mjs`：按 workspace hash 将 job、config 和 current session 存在 Codex plugin data root。
 - `scripts/lib/runtime/render.mjs`：过滤 `pid`、`processRef`、`providerMetadata`、`request`、`logFile` 等内部字段。
 - `scripts/lib/runtime/hook-install.mjs` 与 `scripts/install-hooks.mjs`：幂等合并 `hooks/hooks.json` 到 Codex `hooks.json`，并启用 `[features].hooks`。
-- `scripts/lib/runtime/hooks.mjs`：处理 `SessionStart`、`SessionEnd`、`UserPromptSubmit` 和 optional `Stop` review gate。
+- `scripts/lib/runtime/hooks.mjs`：处理 `SessionStart`、`UserPromptSubmit` 和 optional `Stop` review gate；不依赖 Codex 未支持的 `SessionEnd`。
 
 Adapter 边界：
 
@@ -49,7 +51,7 @@ Adapter 边界：
 测试覆盖：
 
 - `tests/runtime.test.mjs`：参数解析、config hook feature 迁移、hook 安装探测、job store、公开输出脱敏和 mailbox 主流程。
-- `tests/hooks.test.mjs`：session lifecycle、unread result、stop review gate 和 hook input。
+- `tests/hooks.test.mjs`：session start、unread result、stop review gate、hook input 和 bundled hook event 白名单。
 - `tests/gemini-acp.test.mjs`：Gemini ACP adapter 行为。
 - `tests/claude-cli.test.mjs`：Claude CLI stream parser、参数构建和 probe 行为。
 - `tests/acp-generic.test.mjs`：generic ACP JSON-RPC fake process、cancel 和 catalog 边界。

@@ -210,9 +210,10 @@ The plugin bundles `hooks/hooks.json` and does not rely only on global `~/.codex
 Required hook events：
 
 - `SessionStart`：record session routing context.
-- `SessionEnd`：clean stale active jobs owned by the ending session.
 - `UserPromptSubmit`：notify about unread background results.
 - `Stop`：optional review gate when enabled.
+
+Codex 当前 hook schema 不支持 `SessionEnd`。Active job cleanup 不能依赖 session-end lifecycle hook；应通过显式 `cancel`、status cleanup 和旧 job 清理策略处理。
 
 Hook setup rules：
 

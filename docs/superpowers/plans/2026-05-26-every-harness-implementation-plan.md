@@ -151,9 +151,9 @@
 - Create：`scripts/lib/runtime/hooks.mjs`
 - Create：`tests/hooks.test.mjs`
 
-- [ ] Add bundled hook definitions for `SessionStart`、`SessionEnd`、`UserPromptSubmit`、`Stop`。
+- [ ] Add bundled hook definitions for Codex-supported `SessionStart`、`UserPromptSubmit`、`Stop` events。
 - [ ] Implement session routing update on `SessionStart`。
-- [ ] Implement active job cleanup on `SessionEnd`。
+- [ ] Do not rely on `SessionEnd`；Codex 当前 hook schema 不支持它。
 - [ ] Implement unread background result notification on `UserPromptSubmit`。
 - [ ] Implement optional review gate on `Stop` through the selected review-capable adapter.
 - [ ] Run：`node --test tests/hooks.test.mjs`
