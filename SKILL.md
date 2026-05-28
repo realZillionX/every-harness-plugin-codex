@@ -1,11 +1,11 @@
 ---
 name: every-harness
-description: "Use when the agent should delegate scoped work to an installed external agent harness, inspect an Every Harness mailbox, or cancel active delegated work through the `every-harness` CLI."
+description: "Use when Codex should delegate scoped work to an installed external agent harness, inspect an Every Harness mailbox, or cancel active delegated work through the `every-harness` CLI."
 ---
 
 # Every Harness Skill
 
-`every-harness` is the local CLI for delegating bounded agent work to another installed harness. This Skill is an agent playbook: run the CLI yourself when delegation is useful, and keep the user-facing summary short.
+`every-harness` is the local CLI for delegating bounded Codex work to another installed harness. This Skill is a Codex playbook: run the CLI yourself when delegation is useful, and keep the user-facing summary short.
 
 Every Harness does not register slash commands, MCP servers, hooks, or hidden defaults. The CLI is the source of truth for command syntax:
 

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
@@ -15,8 +16,8 @@ test("distribution is a Skill plus CLI instead of a Codex plugin", () => {
   assert.equal(fs.existsSync(path.join(ROOT, ".codex-plugin", "plugin.json")), false);
 
   const pkg = JSON.parse(readText("package.json"));
-  assert.equal(pkg.name, "every-harness-skill");
-  assert.equal(pkg.description, "Agent Skill and CLI for delegating work to external harnesses through a shared mailbox runtime.");
+  assert.equal(pkg.name, "every-harness-plugin-codex");
+  assert.equal(pkg.description, "Codex Skill and CLI for delegating work to external harnesses through a shared mailbox runtime.");
   assert.deepEqual(pkg.bin, {
     "every-harness": "scripts/every-harness.mjs",
   });
@@ -35,14 +36,33 @@ test("distribution is a Skill plus CLI instead of a Codex plugin", () => {
   assert.doesNotMatch(readme, /\.codex-plugin|Codex plugin|Every Harness Plugin|ehplugin/);
 });
 
-test("installer installs the CLI and copies the Skill to harness skill directories", () => {
+test("installer installs the CLI and copies the Skill only to Codex", () => {
   const installer = readText("scripts/install.sh");
   assert.match(installer, /npm install -g/);
-  assert.match(installer, /\.claude\/skills\/every-harness/);
-  assert.match(installer, /\.codex\/skills\/every-harness/);
-  assert.match(installer, /\.gemini\/skills\/every-harness/);
-  assert.match(installer, /\.openclaw\/skills\/every-harness/);
-  assert.match(installer, /\.config\/opencode.*skills\/every-harness/);
+  assert.match(installer, /CODEX_HOME/);
+  assert.match(installer, /CODEX_HOME:-\$HOME\/\.codex/);
+  assert.doesNotMatch(installer, /\.claude|\.gemini|\.openclaw|opencode|--harness/);
+});
+
+test("installer writes the Skill to CODEX_HOME without touching other harnesses", () => {
+  const tempHome = fs.mkdtempSync(path.join(os.tmpdir(), "every-harness-home-"));
+  const codexHome = path.join(tempHome, "codex-home");
+  try {
+    const result = spawnSync("bash", [path.join(ROOT, "scripts", "install.sh"), "--no-cli"], {
+      cwd: ROOT,
+      env: { ...process.env, HOME: tempHome, CODEX_HOME: codexHome },
+      encoding: "utf8",
+    });
+    assert.equal(result.status, 0, result.stderr || result.stdout);
+    assert.equal(fs.existsSync(path.join(codexHome, "skills", "every-harness", "SKILL.md")), true);
+    assert.equal(fs.existsSync(path.join(codexHome, "skills", "every-harness", "agents", "openai.yaml")), true);
+    assert.equal(fs.existsSync(path.join(tempHome, ".claude")), false);
+    assert.equal(fs.existsSync(path.join(tempHome, ".gemini")), false);
+    assert.equal(fs.existsSync(path.join(tempHome, ".openclaw")), false);
+    assert.equal(fs.existsSync(path.join(tempHome, ".config", "opencode")), false);
+  } finally {
+    fs.rmSync(tempHome, { recursive: true, force: true });
+  }
 });
 
 test("CLI exposes command help as the runtime contract", () => {

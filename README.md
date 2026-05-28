@@ -1,7 +1,7 @@
 <p align="center">
   <img src="assets/logo.png" alt="Every Harness logo" width="160"><br>
   <strong>Every Harness</strong><br>
-  <sub>Skill + CLI delegation across local agent harnesses.</sub>
+  <sub>Codex Skill + CLI delegation across local agent harnesses.</sub>
 </p>
 
 <p align="center">
@@ -12,7 +12,7 @@
 
 ---
 
-**Every Harness** is a root `SKILL.md` plus one local CLI, `every-harness`. The Skill teaches an agent when to delegate; the CLI handles `run`, `status`, `cancel`, mailbox state, and harness adapters.
+**Every Harness** is a Codex-facing root `SKILL.md` plus one local CLI, `every-harness`. The Skill teaches Codex when to delegate; the CLI handles `run`, `status`, `cancel`, mailbox state, and harness adapters.
 
 It is not a slash-command toolkit. It does not register MCP servers, hooks, or hidden setup commands.
 
@@ -20,36 +20,31 @@ It is not a slash-command toolkit. It does not register MCP servers, hooks, or h
 
 Every Harness has two installed pieces:
 
-- `SKILL.md` is copied into the target agent harness skill directory.
+- `SKILL.md` is copied into the Codex skill directory.
 - `package.json` exposes the `every-harness` executable through npm.
 
 From this checkout, install both:
 
 ```bash
-scripts/install.sh --harness codex
+scripts/install.sh
 every-harness --help
 every-harness run --harness fake --json smoke
-```
-
-The installer supports `claude`, `codex`, `gemini`, `openclaw`, and `opencode`:
-
-```bash
-scripts/install.sh --harness claude,codex,opencode
 ```
 
 For live development, link the CLI and refresh only the Skill copy:
 
 ```bash
 npm link
-scripts/install.sh --no-cli --harness codex
+scripts/install.sh --no-cli
 ```
 
 Manual installation is also just those two steps:
 
 ```bash
 npm install -g .
-mkdir -p ~/.codex/skills/every-harness
-cp SKILL.md ~/.codex/skills/every-harness/SKILL.md
+CODEX_ROOT="${CODEX_HOME:-$HOME/.codex}"
+mkdir -p "$CODEX_ROOT/skills/every-harness"
+cp SKILL.md "$CODEX_ROOT/skills/every-harness/SKILL.md"
 ```
 
 External harness CLIs are not bundled. Install and authenticate whichever harnesses you want to route to:

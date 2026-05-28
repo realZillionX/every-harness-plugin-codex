@@ -1,7 +1,7 @@
 {
-  "name": "every-harness-skill",
+  "name": "every-harness-plugin-codex",
   "version": "0.1.0",
-  "description": "Agent Skill and CLI for delegating work to external harnesses through a shared mailbox runtime.",
+  "description": "Codex Skill and CLI for delegating work to external harnesses through a shared mailbox runtime.",
   "type": "module",
   "author": {
     "name": "realZillionX",
