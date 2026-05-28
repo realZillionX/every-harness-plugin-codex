@@ -83,6 +83,30 @@ function buildRunRequest({ cwd, adapter, options, prompt, job }) {
   };
 }
 
+function firstResultLine(text, fallback) {
+  const line = String(text ?? "").trim().split("\n").find(Boolean);
+  return line ? line.slice(0, 200) : fallback;
+}
+
+function normalizeResultStatus(status) {
+  const normalized = String(status ?? "").trim().toLowerCase();
+  if (!normalized || normalized === "completed") return "completed";
+  if (TERMINAL_RESULT_STATUSES.has(normalized)) return normalized;
+  return "failed";
+}
+
+const TERMINAL_RESULT_STATUSES = new Set(["failed", "cancelled", "cancel_failed"]);
+
+function resultFailureMessage(result, status) {
+  const message =
+    result.warning ??
+    result.errorMessage ??
+    result.error ??
+    result.stderr ??
+    (Number.isFinite(Number(result.exitCode)) ? `Harness exited with code ${result.exitCode}.` : null);
+  return String(message ?? `Harness returned ${status}.`).trim();
+}
+
 export async function runJob(cwd, job, adapter, request, env = process.env) {
   const logFile = resolveJobLogFile(cwd, job.id, env);
   fs.mkdirSync(path.dirname(logFile), { recursive: true });
@@ -98,9 +122,27 @@ export async function runJob(cwd, job, adapter, request, env = process.env) {
     const result = await adapter.runTurn(request, { onProgress, onSpawn });
     const finalText = String(result.finalText ?? result.finalMessage ?? result.output ?? result.text ?? "").trim();
     const processRef = result.processRef ?? (Number.isFinite(Number(result.pid)) ? { pid: Number(result.pid), pidIdentity: result.pidIdentity ?? null } : null);
+    const status = normalizeResultStatus(result.status);
+    if (status !== "completed") {
+      const transitioned = transitionJob(cwd, job.id, ["running"], status, {
+        phase: status,
+        summary: firstResultLine(finalText, resultFailureMessage(result, status)),
+        errorMessage: resultFailureMessage(result, status),
+        result: {
+          finalText,
+          structuredOutput: result.structuredOutput ?? null,
+          touchedFiles: result.touchedFiles ?? [],
+        },
+        providerMetadata: result.providerMetadata ?? null,
+        ...(processRef ? { processRef } : {}),
+        threadId: result.sessionId ?? result.threadId ?? null,
+      }, env);
+      cleanupOldJobs(cwd, {}, env);
+      return { job: transitioned.job ?? readJob(cwd, job.id, env), result };
+    }
     const transitioned = transitionJob(cwd, job.id, ["running"], "completed", {
       phase: "done",
-      summary: finalText ? finalText.split("\n")[0].slice(0, 200) : "Completed.",
+      summary: firstResultLine(finalText, "Completed."),
       result: {
         finalText,
         structuredOutput: result.structuredOutput ?? null,

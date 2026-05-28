@@ -119,3 +119,37 @@ test("mailbox runtime runs, reports, and cancels fake jobs", async () => {
   assert.equal(JSON.parse(cancel.text).job.status, "cancelled");
   assert.equal(readJob(cwd, queued.id, env).status, "cancelled");
 });
+
+test("mailbox runtime preserves resolved adapter failure status", async () => {
+  const cwd = makeTempWorkspace();
+  const env = {
+    ...process.env,
+    PLUGIN_DATA: path.join(cwd, "plugin-data"),
+  };
+  clearAdapters();
+  registerAdapter({
+    id: "soft-fail",
+    displayName: "Soft Fail Harness",
+    async runTurn() {
+      return {
+        status: "failed",
+        exitCode: 7,
+        finalText: "partial output",
+        stderr: "bad credentials\n",
+      };
+    },
+    async cancel() {
+      return { cancelled: true };
+    },
+  });
+
+  const run = await captureStdout(() =>
+    handleRun(["--cwd", cwd, "--harness", "soft-fail", "--json", "do work"], env),
+  );
+
+  const payload = JSON.parse(run.text);
+  assert.equal(payload.status, "failed");
+  assert.equal(payload.job.status, "failed");
+  assert.match(payload.job.errorMessage, /bad credentials/);
+  assert.equal(payload.job.result.finalText, "partial output");
+});

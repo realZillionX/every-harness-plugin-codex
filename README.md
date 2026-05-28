@@ -1,4 +1,5 @@
 <p align="center">
+  <img src="assets/logo.png" alt="Every Harness Plugin for Codex logo" width="160"><br>
   <strong>Every Harness Plugin for Codex</strong><br>
   <sub>One CLI. Multiple agent harnesses. Shared mailbox runtime.</sub>
 </p>
@@ -17,15 +18,48 @@
 
 ## Architecture
 
-```
-Codex (planner / coordinator)
-  |
-  v
-ehplugin CLI ── adapter routing ── mailbox state
-  |
-  v
-External harness (scoped executor)
-```
+<table>
+  <tbody>
+    <tr>
+      <td align="center" colspan="3">
+        <strong>Codex</strong><br>
+        <sub>planner / coordinator</sub>
+      </td>
+    </tr>
+    <tr>
+      <td align="center" colspan="3">↓</td>
+    </tr>
+    <tr>
+      <td align="center">
+        <strong><code>ehplugin</code> CLI</strong><br>
+        <sub>run / status / cancel</sub>
+      </td>
+      <td align="center">→</td>
+      <td align="center">
+        <strong>Mailbox State</strong><br>
+        <sub>local job records</sub>
+      </td>
+    </tr>
+    <tr>
+      <td align="center" colspan="3">↓</td>
+    </tr>
+    <tr>
+      <td align="center" colspan="3">
+        <strong>Adapter Routing</strong><br>
+        <sub>ACP, native stream JSON, and native text adapters</sub>
+      </td>
+    </tr>
+    <tr>
+      <td align="center" colspan="3">↓</td>
+    </tr>
+    <tr>
+      <td align="center" colspan="3">
+        <strong>External Harness</strong><br>
+        <sub>scoped executor</sub>
+      </td>
+    </tr>
+  </tbody>
+</table>
 
 Codex remains the planner. A selected harness owns scoped execution. `ehplugin` owns local mailbox state, status rendering, cancellation, and adapter routing.
 
