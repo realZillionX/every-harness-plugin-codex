@@ -1,79 +1,112 @@
-# Every Harness Plugin for Codex
+<p align="center">
+  <strong>Every Harness Plugin for Codex</strong><br>
+  <sub>One CLI. Multiple agent harnesses. Shared mailbox runtime.</sub>
+</p>
 
-Every Harness is a small Codex plugin that gives the agent one local CLI for delegating work to other agent harnesses.
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue" alt="License"></a>
+  <img src="https://img.shields.io/badge/node-%3E%3D18-brightgreen" alt="Node">
+  <img src="https://img.shields.io/badge/status-experimental-orange" alt="Status">
+</p>
 
-This is not a user-facing slash-command toolkit. The plugin provides one Skill that teaches Codex how to use `ehplugin` when delegation is useful. The only public CLI surface is:
+---
+
+**Every Harness** is a Codex plugin that gives the agent one local CLI (`ehplugin`) for delegating scoped work to external agent harnesses.
+
+> This is **not** a user-facing slash-command toolkit. The plugin exposes a single Skill that teaches Codex when and how to delegate.
+
+## Architecture
+
+```
+Codex (planner / coordinator)
+  |
+  v
+ehplugin CLI ── adapter routing ── mailbox state
+  |
+  v
+External harness (scoped executor)
+```
+
+Codex remains the planner. A selected harness owns scoped execution. `ehplugin` owns local mailbox state, status rendering, cancellation, and adapter routing.
+
+## Usage
 
 ```bash
-ehplugin run --harness <id> [options] <task text>
+ehplugin run --harness <id> [options] <task>
 ehplugin status [options]
 ehplugin cancel [options]
 ```
 
-Codex remains the planner and coordinator. A selected harness owns scoped execution. `ehplugin` owns the local mailbox state, status rendering, cancellation, and adapter routing.
-
-## CLI
-
-`ehplugin` is the only public CLI.
+### Examples
 
 ```bash
-ehplugin run --harness antigravity inspect the current diff
-ehplugin run --harness claude-code --write fix the failing parser test
+# Delegate a code review to Claude Code
+ehplugin run --harness claude-code --read-only review the auth module
+
+# Run a background task with Kimi Code
 ehplugin run --harness kimi-code --background summarize this repo
+
+# Write mode with Antigravity
+ehplugin run --harness antigravity --write fix the failing parser test
+
+# Check all active jobs
 ehplugin status --all
+
+# Cancel a specific harness
 ehplugin cancel --harness kimi-code
 ```
 
-Supported `run` options:
+### `run` Options
 
-- `--harness <id>`
-- `--background`
-- `--write`
-- `--read-only`
-- `--model <model>`
-- `--effort <effort>`
-- `--prompt-file <path>`
-- free-text task text
+| Flag | Description |
+| --- | --- |
+| `--harness <id>` | Target harness (required) |
+| `--background` | Run asynchronously, check back with `status` |
+| `--write` | Allow the harness to modify files |
+| `--read-only` | Restrict the harness to read-only access |
+| `--model <model>` | Override model selection |
+| `--effort <effort>` | Set effort level |
+| `--prompt-file <path>` | Load task from file |
 
-Supported `status` options:
+### `status` Options
 
-- `--harness <id>`
-- `--all`
-- `--wait`
+| Flag | Description |
+| --- | --- |
+| `--harness <id>` | Filter by harness |
+| `--all` | Show all jobs |
+| `--wait` | Block until completion |
 
-Supported `cancel` options:
+### `cancel` Options
 
-- `--harness <id>`
+| Flag | Description |
+| --- | --- |
+| `--harness <id>` | Cancel jobs for a specific harness |
 
-## Built-In Harnesses
+## Supported Harnesses
 
-Every external harness is invoked through that harness's CLI entry. The public `--harness` name is the product-facing name; the CLI entry is the command that the adapter launches.
-
-| Harness | `--harness` | CLI entry |
+| Harness | `--harness` | Protocol |
 | --- | --- | --- |
-| Claude Code | `claude-code` | `claude` |
-| Antigravity | `antigravity` | `agy` |
-| OpenCode | `opencode` | `opencode` / `npx opencode-ai` |
-| OpenClaw | `openclaw` | `openclaw` |
-| CodeWhale | `codewhale` | `codewhale` |
-| Kimi Code | `kimi-code` | `kimi` |
-| Qoder | `qoder` | `qodercli` |
-| TRAE | `trae` | `traecli` |
-| GitHub Copilot | `copilot` | `copilot` |
-| Cursor | `cursor` | `cursor-agent` |
-| Kiro | `kiro` | `kiro-cli` |
+| Claude Code | `claude-code` | Native stream JSON |
+| Antigravity | `antigravity` | Native text |
+| OpenCode | `opencode` | ACP |
+| OpenClaw | `openclaw` | ACP |
+| CodeWhale | `codewhale` | Native stream JSON |
+| Kimi Code | `kimi-code` | Native stream JSON |
+| Qoder | `qoder` | ACP |
+| TRAE | `trae` | ACP |
+| GitHub Copilot | `copilot` | ACP |
+| Cursor | `cursor` | ACP |
+| Kiro | `kiro` | ACP |
 
-`fake` is an internal deterministic adapter for tests and smoke checks, not an external harness CLI.
-
-Antigravity support is deliberately limited to text headless mode because ACP、JSON、and streaming contracts are not confirmed.
+> **Note:** Antigravity is limited to text headless mode (`agy --print`). ACP, JSON, and streaming contracts are not confirmed.
 
 ## Development
 
 ```bash
-npm test
-npm run check
-npm run smoke:fake
-npm pack --dry-run
+npm test            # Run unit tests
+npm run check       # Lint + tests
+npm run smoke:fake  # Smoke test with fake adapter
+npm pack --dry-run  # Verify package contents
 ```
 
 ## Privacy
@@ -82,4 +115,4 @@ The plugin stores mailbox metadata locally under Codex plugin data storage. Exte
 
 ## License
 
-Apache-2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
+Apache-2.0 -- See [LICENSE](LICENSE) and [NOTICE](NOTICE).
