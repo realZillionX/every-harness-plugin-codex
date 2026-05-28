@@ -5,11 +5,9 @@ import {
   BUILTIN_ACP_HARNESSES,
   BUILTIN_CLI_HEADLESS_HARNESSES,
   BUILTIN_HARNESSES,
-  PLANNED_HARNESSES,
   createBuiltinAcpAdapters,
   createBuiltinCliHeadlessAdapters,
   createBuiltinHarnessAdapters,
-  createPlannedHarnessAdapters,
 } from "../scripts/lib/adapters/builtin-harnesses.mjs";
 
 const REQUIRED_HARNESSES = [
@@ -30,7 +28,7 @@ function assertCatalogMetadata(definition) {
   assert.equal(typeof definition.install, "string", `${definition.id} missing install`);
   assert.ok(definition.install.length > 0, `${definition.id} install is empty`);
   assert.equal(typeof definition.maturity, "string", `${definition.id} missing maturity`);
-  assert.match(definition.maturity, /^(stable|experimental|planned)$/);
+  assert.match(definition.maturity, /^(stable|experimental)$/);
   assert.equal(typeof definition.protocol, "string", `${definition.id} missing protocol`);
   assert.ok(definition.protocol.length > 0, `${definition.id} protocol is empty`);
 }
@@ -42,7 +40,7 @@ function requireDefinition(definitions, id) {
 }
 
 test("harness catalog keeps concrete harnesses explicit", () => {
-  for (const definition of [...BUILTIN_HARNESSES, ...PLANNED_HARNESSES]) {
+  for (const definition of BUILTIN_HARNESSES) {
     assertCatalogMetadata(definition);
   }
 
@@ -69,20 +67,15 @@ test("harness catalog keeps concrete harnesses explicit", () => {
   assert.equal(kimiCode.protocol, "native-stream-json");
   assert.match(kimiCode.install, /kimi -p --output-format stream-json/);
   assert.doesNotMatch(kimiCode.install, /kimi acp/);
-
-  const pi = requireDefinition(PLANNED_HARNESSES, "pi-coding-agent");
-  assert.equal(pi.protocol, "native-rpc");
 });
 
 test("public harness ids use product names instead of cli-flavored ids", () => {
   const publicIds = [
     ...BUILTIN_HARNESSES.map((definition) => definition.id),
-    ...PLANNED_HARNESSES.map((definition) => definition.id),
     "claude-code",
   ];
   const publicAliases = [
     ...BUILTIN_HARNESSES.flatMap((definition) => definition.aliases ?? []),
-    ...PLANNED_HARNESSES.flatMap((definition) => definition.aliases ?? []),
     "claude",
   ];
   for (const id of publicIds) {
@@ -105,7 +98,6 @@ test("public harness ids use product names instead of cli-flavored ids", () => {
     "kiro",
     "openclaw",
     "opencode",
-    "pi-coding-agent",
     "qoder",
     "trae",
   ]);
@@ -118,14 +110,12 @@ test("catalog factories preserve protocol boundaries", async () => {
   const headlessAdapters = createBuiltinCliHeadlessAdapters({
     spawnSyncImpl: () => ({ status: 1, stderr: "not installed" }),
   });
-  const plannedAdapters = createPlannedHarnessAdapters();
   const builtinAdapters = createBuiltinHarnessAdapters({
     spawnSyncImpl: () => ({ status: 1, stderr: "not installed" }),
   });
 
   assert.ok(acpAdapters.every((adapter) => adapter.protocol === "acp"));
   assert.ok(headlessAdapters.every((adapter) => adapter.protocol.startsWith("native-")));
-  assert.equal(plannedAdapters.some((adapter) => adapter.id === "pi-coding-agent"), true);
   assert.equal(builtinAdapters.length, acpAdapters.length + headlessAdapters.length);
 
   for (const adapter of builtinAdapters) {

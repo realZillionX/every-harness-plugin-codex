@@ -62,11 +62,8 @@ Every external harness is invoked through that harness's CLI entry. The public `
 | GitHub Copilot | `copilot` | `copilot` |
 | Cursor | `cursor` | `cursor-agent` |
 | Kiro | `kiro` | `kiro-cli` |
-| Pi Coding Agent | `pi-coding-agent` | `pi` |
 
 `fake` is an internal deterministic adapter for tests and smoke checks, not an external harness CLI.
-
-Official Pi Coding Agent is tracked as planned and needs a dedicated `pi --mode rpc` / `pi --mode json` adapter before it should be considered runnable.
 
 Antigravity support is deliberately limited to text headless mode because ACP、JSON、and streaming contracts are not confirmed.
 

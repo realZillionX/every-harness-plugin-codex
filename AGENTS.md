@@ -48,7 +48,7 @@ Adapter 边界：
 - `scripts/lib/adapters/claude-code.mjs`：Claude Code adapter，包含模型与 effort 别名、`stream-json` parser、read-only tool defaults、CLI probe 和进程组取消。
 - `scripts/lib/adapters/acp-generic.mjs`：通用 ACP JSON-RPC adapter，用于已有明确 ACP 入口的具体 harness。
 - `scripts/lib/adapters/cli-headless.mjs`：通用 native headless adapter，用于 Antigravity text output、Kimi Code stream JSON 和 CodeWhale stream JSON。
-- `scripts/lib/adapters/builtin-harnesses.mjs`：真实 harness catalog，分开维护 ACP、native headless 和 planned harness。
+- `scripts/lib/adapters/builtin-harnesses.mjs`：真实 harness catalog，分开维护 ACP 和 native headless harness。
 
 测试覆盖：
 

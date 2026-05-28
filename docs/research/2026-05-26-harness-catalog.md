@@ -28,7 +28,6 @@ Current implementation stance：
 | GitHub Copilot | `copilot` | `copilot --acp --stdio` | Generic ACP adapter implemented |
 | Cursor | `cursor` | `cursor-agent acp` | Generic ACP adapter implemented |
 | Kiro | `kiro` | `kiro-cli acp` | Generic ACP adapter implemented |
-| Pi Coding Agent | `pi-coding-agent` | `pi --mode rpc` / `pi --mode json` | Planned dedicated native adapter |
 | Antigravity | `antigravity` | `agy --print` / `agy -p` | Limited text headless adapter implemented; ACP、JSON、and streaming contracts are not confirmed |
 
 ## Local Environment Findings
@@ -43,7 +42,6 @@ On the current machine：
 - Anthropic Claude Code npm metadata：`@anthropic-ai/claude-code` provides the `claude` binary and links to `https://github.com/anthropics/claude-code`。
 - Qoder CLI npm metadata：`@qoder-ai/qodercli` provides the `qodercli` binary and links to `https://github.com/nicepkg/qodercli`；Qoder docs also expose CLI and ACP documentation at `https://docs.qoder.com/cli/acp`。
 - ACP ecosystem references include the Agent Client Protocol SDK at `https://github.com/agentclientprotocol/typescript-sdk` and the `acpx` agent list at `https://acpx.sh/agents.html`。The `acpx` registry confirms ACP command shapes for OpenClaw、Cursor、Copilot、Qoder、Kiro、OpenCode and Trae.
-- Official Pi Coding Agent public quickstart describes `@earendil-works/pi-coding-agent` with `pi --mode rpc` / `pi --mode json` integration modes, so it should get a dedicated adapter when promoted beyond planned.
 - Official TRAE CLI docs identify `traecli acp serve` as the ACP entry and `--print --json` as a non-interactive fallback. The public `bytedance/trae-agent` repository is useful research context, but should not be treated as the stable production adapter target.
 - DeepSeek official CLI research did not find a vendor-supported coding CLI. Community CodeWhale is non-official, but documents both `codewhale exec --auto --output-format stream-json` and `codewhale serve --acp`。
 - OpenCode ACP docs are at `https://opencode.ai/docs/integrations/acp/`。OpenCode also exposes `opencode run --format json` and `opencode serve` for non-ACP integration research.

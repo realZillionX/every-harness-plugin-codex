@@ -10,9 +10,7 @@ import { createGenericAcpAdapter, normalizeAcpProgressUpdate } from "../scripts/
 import {
   BUILTIN_ACP_HARNESSES,
   BUILTIN_CLI_HEADLESS_HARNESSES,
-  PLANNED_HARNESSES,
   createBuiltinAcpAdapters,
-  createPlannedHarnessAdapters,
 } from "../scripts/lib/adapters/builtin-harnesses.mjs";
 
 const fakeAcpAgentPath = fileURLToPath(new URL("./fixtures/fake-acp-agent.mjs", import.meta.url));
@@ -233,14 +231,6 @@ test("native headless catalog includes non-ACP requested harnesses", () => {
   assert.equal(ids.has("kimi-code"), true);
   const codewhale = BUILTIN_CLI_HEADLESS_HARNESSES.find((definition) => definition.id === "codewhale");
   assert.ok(codewhale.aliases.includes("deepseek-tui"));
-});
-
-test("catalog tracks planned but unverified harnesses explicitly", async () => {
-  assert.equal(PLANNED_HARNESSES.some((definition) => definition.id === "pi-coding-agent"), true);
-  const [adapter] = createPlannedHarnessAdapters();
-  assert.equal(adapter.id, "pi-coding-agent");
-  assert.equal((await adapter.checkAvailability()).available, false);
-  await assert.rejects(() => adapter.runTurn(), /not runnable yet/);
 });
 
 function createSpawnedFakeAcpAdapter(options = {}) {

@@ -132,19 +132,6 @@ export const BUILTIN_CLI_HEADLESS_HARNESSES = [
   },
 ].map((definition) => ({ ...DEFAULT_CLI_HEADLESS_METADATA, ...definition }));
 
-export const PLANNED_HARNESSES = [
-  {
-    id: "pi-coding-agent",
-    aliases: ["pi"],
-    displayName: "Pi Coding Agent",
-    maturity: "planned",
-    protocol: "native-rpc",
-    install: "Install official Pi with `npm install -g --ignore-scripts @earendil-works/pi-coding-agent`; adapter work must target `pi --mode rpc` or `pi --mode json`.",
-    reason: "Official Pi needs a dedicated native RPC/JSON adapter.",
-    source: "https://pi.dev/docs/latest/quickstart",
-  },
-];
-
 export const BUILTIN_HARNESSES = [
   ...BUILTIN_ACP_HARNESSES,
   ...BUILTIN_CLI_HEADLESS_HARNESSES,
@@ -201,42 +188,4 @@ export function createBuiltinHarnessAdapters(options = {}) {
     ...createBuiltinAcpAdapters(options),
     ...createBuiltinCliHeadlessAdapters(options),
   ];
-}
-
-export function createPlannedHarnessAdapters() {
-  return PLANNED_HARNESSES.map((definition) => ({
-    id: definition.id,
-    aliases: definition.aliases ?? [],
-    displayName: definition.displayName,
-    maturity: definition.maturity,
-    protocol: definition.protocol,
-    install: definition.install,
-    source: definition.source,
-    async checkAvailability() {
-      return {
-        available: false,
-        detail: definition.reason,
-        install: definition.install,
-        maturity: definition.maturity,
-        protocol: definition.protocol,
-        source: definition.source,
-      };
-    },
-    async checkAuth() {
-      return {
-        loggedIn: null,
-        confidence: "not-applicable",
-        detail: "No runnable adapter is enabled until a stable headless or ACP contract is verified.",
-      };
-    },
-    async runTurn() {
-      throw new Error(`${definition.displayName} is cataloged but not runnable yet: ${definition.reason}`);
-    },
-    async cancel() {
-      return {
-        cancelled: false,
-        detail: `${definition.displayName} has no active runnable adapter.`,
-      };
-    },
-  }));
 }
