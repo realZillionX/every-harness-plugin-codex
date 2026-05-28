@@ -55,7 +55,7 @@ test("installer writes the Skill to CODEX_HOME without touching other harnesses"
     });
     assert.equal(result.status, 0, result.stderr || result.stdout);
     assert.equal(fs.existsSync(path.join(codexHome, "skills", "every-harness", "SKILL.md")), true);
-    assert.equal(fs.existsSync(path.join(codexHome, "skills", "every-harness", "agents", "openai.yaml")), true);
+    assert.equal(fs.existsSync(path.join(codexHome, "skills", "every-harness", "agents", "openai.yaml")), false);
     assert.equal(fs.existsSync(path.join(tempHome, ".claude")), false);
     assert.equal(fs.existsSync(path.join(tempHome, ".gemini")), false);
     assert.equal(fs.existsSync(path.join(tempHome, ".openclaw")), false);
@@ -63,6 +63,24 @@ test("installer writes the Skill to CODEX_HOME without touching other harnesses"
   } finally {
     fs.rmSync(tempHome, { recursive: true, force: true });
   }
+});
+
+test("npm dry-run package contents match the intended distribution", () => {
+  const result = spawnSync("npm", ["pack", "--dry-run", "--json"], {
+    cwd: ROOT,
+    encoding: "utf8",
+  });
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+
+  const [pack] = JSON.parse(result.stdout);
+  const paths = new Set(pack.files.map((file) => file.path));
+  assert.equal(paths.has("SKILL.md"), true);
+  assert.equal(paths.has("scripts/every-harness.mjs"), true);
+  assert.equal(paths.has("scripts/install.sh"), true);
+  assert.equal(paths.has("package.json"), true);
+  assert.equal(paths.has("tests/runtime.test.mjs"), false);
+  assert.equal(paths.has(".codex-plugin/plugin.json"), false);
+  assert.equal(paths.has("agents/openai.yaml"), false);
 });
 
 test("CLI exposes command help as the runtime contract", () => {

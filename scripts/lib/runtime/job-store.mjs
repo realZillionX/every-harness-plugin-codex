@@ -11,7 +11,9 @@ export function nowIso() {
 }
 
 export function resolveDataRoot(env = process.env) {
-  return env.EVERY_HARNESS_DATA || path.join(os.homedir(), ".every-harness");
+  return env.EVERY_HARNESS_DATA
+    ? path.resolve(env.EVERY_HARNESS_DATA)
+    : path.join(os.homedir(), ".every-harness");
 }
 
 export function resolveWorkspaceRoot(cwd = process.cwd()) {
@@ -40,8 +42,13 @@ export function resolveJobsDir(cwd = process.cwd(), env = process.env) {
   return path.join(resolveStateDir(cwd, env), "jobs");
 }
 
+export function resolveLockDir(cwd = process.cwd(), env = process.env) {
+  return path.join(resolveStateDir(cwd, env), "locks");
+}
+
 export function ensureStateDir(cwd = process.cwd(), env = process.env) {
   fs.mkdirSync(resolveJobsDir(cwd, env), { recursive: true, mode: 0o700 });
+  fs.mkdirSync(resolveLockDir(cwd, env), { recursive: true, mode: 0o700 });
 }
 
 export function sanitizeId(id, label = "ID") {
@@ -158,5 +165,53 @@ export function cleanupOldJobs(cwd, { maxTerminalJobs = 100 } = {}, env = proces
   for (const job of terminal.slice(maxTerminalJobs)) {
     try { fs.unlinkSync(resolveJobFile(cwd, job.id, env)); } catch {}
     try { fs.unlinkSync(resolveJobLogFile(cwd, job.id, env)); } catch {}
+  }
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export async function withJobStoreLock(cwd, env, fn, options = {}) {
+  ensureStateDir(cwd, env);
+  const lockName = sanitizeId(options.name ?? "job-store", "lock name");
+  const lockDir = path.join(resolveLockDir(cwd, env), `${lockName}.lock`);
+  const timeoutMs = options.timeoutMs ?? 5000;
+  const pollIntervalMs = options.pollIntervalMs ?? 25;
+  const staleMs = options.staleMs ?? 30_000;
+  const deadline = Date.now() + timeoutMs;
+  let locked = false;
+
+  while (!locked) {
+    try {
+      fs.mkdirSync(lockDir, { mode: 0o700 });
+      fs.writeFileSync(path.join(lockDir, "owner.json"), JSON.stringify({
+        pid: process.pid,
+        createdAt: nowIso(),
+      }), { encoding: "utf8", mode: 0o600 });
+      locked = true;
+      break;
+    } catch (error) {
+      if (error?.code !== "EEXIST") throw error;
+      try {
+        const stat = fs.statSync(lockDir);
+        if (Date.now() - stat.mtimeMs > staleMs) {
+          fs.rmSync(lockDir, { recursive: true, force: true });
+          continue;
+        }
+      } catch {}
+      if (Date.now() >= deadline) {
+        throw new Error(`Timed out waiting for Every Harness job store lock: ${lockName}`);
+      }
+      await sleep(pollIntervalMs);
+    }
+  }
+
+  try {
+    return await fn();
+  } finally {
+    if (locked) {
+      try { fs.rmSync(lockDir, { recursive: true, force: true }); } catch {}
+    }
   }
 }

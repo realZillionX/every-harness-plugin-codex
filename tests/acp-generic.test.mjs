@@ -230,7 +230,8 @@ test("native headless catalog includes non-ACP requested harnesses", () => {
   assert.equal(ids.has("codewhale"), true);
   assert.equal(ids.has("kimi-code"), true);
   const codewhale = BUILTIN_CLI_HEADLESS_HARNESSES.find((definition) => definition.id === "codewhale");
-  assert.ok(codewhale.aliases.includes("deepseek-tui"));
+  assert.deepEqual(codewhale.aliases, []);
+  assert.equal(codewhale.protocol, "native-stream-json");
 });
 
 function createSpawnedFakeAcpAdapter(options = {}) {

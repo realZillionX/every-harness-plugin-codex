@@ -103,17 +103,17 @@ export const BUILTIN_CLI_HEADLESS_HARNESSES = [
   },
   {
     id: "codewhale",
-    aliases: ["deepseek-tui", "deepseek", "codew"],
-    displayName: "CodeWhale (DeepSeek community)",
+    aliases: [],
+    displayName: "CodeWhale",
     command: "codewhale",
     args: ["exec", "--auto", "--output-format", "stream-json"],
     outputMode: "stream-json",
-    protocol: "native-stream-json+acp",
-    install: "Install community CodeWhale, then expose `codewhale exec --auto --output-format stream-json` on PATH. ACP alternative: `codewhale serve --acp`. This is not an official DeepSeek CLI.",
+    protocol: "native-stream-json",
+    install: "Install CodeWhale, then expose `codewhale exec --auto --output-format stream-json` on PATH.",
     source: "https://github.com/Hmbown/CodeWhale",
     auth: {
       envKeys: ["DEEPSEEK_API_KEY"],
-      detail: "Configure CodeWhale auth through its config file or DeepSeek-compatible provider environment.",
+      detail: "Configure CodeWhale auth through its config file or provider environment.",
     },
   },
   {

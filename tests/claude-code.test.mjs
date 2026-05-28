@@ -257,6 +257,12 @@ test("buildClaudeArgs supports non-stream output and read-only tool defaults", (
   );
   assert.ok(readOnlyArgs.includes("Read"));
   assert.ok(readOnlyArgs.includes("Grep"));
+
+  const runtimeReadArgs = buildClaudeArgs("inspect", { mode: "read" });
+  assert.equal(
+    runtimeReadArgs.filter((value) => value === "--allowedTools").length,
+    CLAUDE_READ_ONLY_TOOLS.length
+  );
 });
 
 test("createClaudeCodeAdapter exposes contract and uses injected probes", async () => {

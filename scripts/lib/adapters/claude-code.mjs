@@ -1,4 +1,5 @@
 import { spawn, spawnSync } from "node:child_process";
+import { getProcessIdentity, validateProcessIdentity } from "../runtime/process-control.mjs";
 
 const CLAUDE_BIN = "claude";
 const DEFAULT_AVAILABILITY_TIMEOUT_MS = 10_000;
@@ -141,6 +142,10 @@ export function resolveClaudeEffort(effort) {
   throw new Error(
     `Unsupported Claude effort "${effort}". Use one of: ${[...VALID_EFFORTS].join(", ")}.`
   );
+}
+
+function isReadOnlyMode(mode) {
+  return ["read", "read-only", "readonly", "plan"].includes(String(mode ?? "").toLowerCase());
 }
 
 export class StreamParser {
@@ -393,7 +398,7 @@ export function buildClaudeArgs(prompt, options = {}) {
   }
 
   const allowedTools =
-    options.allowedTools ?? (options.mode === "read-only" || options.readOnly ? CLAUDE_READ_ONLY_TOOLS : null);
+    options.allowedTools ?? (isReadOnlyMode(options.mode) || options.readOnly ? CLAUDE_READ_ONLY_TOOLS : null);
   if (Array.isArray(allowedTools)) {
     for (const tool of allowedTools) {
       args.push("--allowedTools", String(tool));
@@ -497,7 +502,8 @@ export function createClaudeCodeAdapter(options = {}) {
         stdio: ["ignore", "pipe", "pipe"],
         env: request.env ?? env,
       });
-      callbacks.onSpawn?.({ pid: child.pid });
+      const pidIdentity = getProcessIdentity(child.pid);
+      callbacks.onSpawn?.({ pid: child.pid, pidIdentity });
 
       const parser = new StreamParser();
       let stderr = "";
@@ -531,7 +537,7 @@ export function createClaudeCodeAdapter(options = {}) {
           touchedFiles: parser.state.touchedFiles,
           stderr,
           pid: child.pid,
-          processRef: Number.isFinite(Number(child.pid)) ? { pid: Number(child.pid), pidIdentity: null } : null,
+          processRef: Number.isFinite(Number(child.pid)) ? { pid: Number(child.pid), pidIdentity } : null,
         });
       });
 
@@ -562,6 +568,14 @@ export function createClaudeCodeAdapter(options = {}) {
       return { cancelled: false, status: "failed", detail: "missing Claude process id" };
     }
     try {
+      const identity = request.pidIdentity ?? request.processRef?.pidIdentity ?? null;
+      if (!validateProcessIdentity(pid, identity)) {
+        return {
+          cancelled: false,
+          status: "failed",
+          detail: `Claude process identity did not match; refusing to terminate PID ${pid}.`,
+        };
+      }
       killImpl(-pid, request.signal ?? "SIGTERM");
       return { cancelled: true, status: "cancelled" };
     } catch (error) {

@@ -15,11 +15,13 @@ const REQUIRED_HARNESSES = [
   "openclaw",
   "antigravity",
   "claude-code",
-  "deepseek-tui",
   "codewhale",
   "kimi-code",
   "trae",
   "qoder",
+  "copilot",
+  "cursor",
+  "kiro",
 ];
 
 function assertCatalogMetadata(definition) {
@@ -59,9 +61,9 @@ test("harness catalog keeps concrete harnesses explicit", () => {
   assert.match(antigravity.install, /ACP.*JSON.*stream/i);
 
   const codewhale = requireDefinition(BUILTIN_CLI_HEADLESS_HARNESSES, "codewhale");
-  assert.equal(codewhale.protocol, "native-stream-json+acp");
-  assert.ok(codewhale.aliases.includes("deepseek-tui"));
-  assert.match(codewhale.install, /not an official DeepSeek CLI/i);
+  assert.equal(codewhale.protocol, "native-stream-json");
+  assert.deepEqual(codewhale.aliases, []);
+  assert.doesNotMatch(codewhale.install, /acp|DeepSeek TUI/i);
 
   const kimiCode = requireDefinition(BUILTIN_CLI_HEADLESS_HARNESSES, "kimi-code");
   assert.equal(kimiCode.protocol, "native-stream-json");

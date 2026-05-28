@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { parseCommandArgs } from "./args.mjs";
 import {
   ACTIVE_JOB_STATUSES,
+  TERMINAL_JOB_STATUSES,
   cleanupOldJobs,
   createJob,
   findActiveJob,
@@ -13,6 +14,7 @@ import {
   readJob,
   resolveJobLogFile,
   transitionJob,
+  withJobStoreLock,
 } from "./job-store.mjs";
 import { publicJobPayload, renderJson, renderMailboxJob, renderStatus } from "./render.mjs";
 import { resolveHarnessSelection } from "../adapters/registry.mjs";
@@ -22,6 +24,14 @@ const PACKAGE_ROOT = path.resolve(path.dirname(THIS_FILE), "..", "..", "..");
 const EVERY_HARNESS_PATH = path.join(PACKAGE_ROOT, "scripts", "every-harness.mjs");
 const DEFAULT_WAIT_TIMEOUT_MS = 240_000;
 const DEFAULT_POLL_INTERVAL_MS = 2_000;
+
+function normalizeRuntimeEnv(env = process.env) {
+  const normalized = { ...env };
+  if (normalized.EVERY_HARNESS_DATA) {
+    normalized.EVERY_HARNESS_DATA = path.resolve(process.cwd(), normalized.EVERY_HARNESS_DATA);
+  }
+  return normalized;
+}
 
 function resolveCwd(options = {}) {
   return options.cwd ? path.resolve(process.cwd(), options.cwd) : process.cwd();
@@ -109,13 +119,29 @@ function resultFailureMessage(result, status) {
 
 export async function runJob(cwd, job, adapter, request, env = process.env) {
   const logFile = resolveJobLogFile(cwd, job.id, env);
-  fs.mkdirSync(path.dirname(logFile), { recursive: true });
-  if (!fs.existsSync(logFile)) fs.writeFileSync(logFile, "", "utf8");
-  transitionJob(cwd, job.id, ["queued", "running"], "running", {
+  const started = transitionJob(cwd, job.id, ["queued", "running"], "running", {
     phase: "starting",
     logFile,
     request,
   }, env);
+  if (!started.transitioned) {
+    const current = started.job ?? readJob(cwd, job.id, env);
+    if (current) {
+      return {
+        job: current,
+        result: {
+          status: current.status,
+          finalText: "",
+          warning: TERMINAL_JOB_STATUSES.has(current.status)
+            ? `Job was already ${current.status}.`
+            : `Job is not runnable from status ${current.status}.`,
+        },
+      };
+    }
+    throw new Error(`No job found for ${job.id}.`);
+  }
+  fs.mkdirSync(path.dirname(logFile), { recursive: true });
+  if (!fs.existsSync(logFile)) fs.writeFileSync(logFile, "", "utf8");
   const onProgress = createProgressUpdater(cwd, job.id, env);
   const onSpawn = createSpawnUpdater(cwd, job.id, env);
   try {
@@ -188,6 +214,7 @@ async function waitForIdle(cwd, env, { harnessId = null, timeoutMs = DEFAULT_WAI
 }
 
 export async function handleRun(argv, env = process.env) {
+  env = normalizeRuntimeEnv(env);
   const { options, positionals } = parseCommandArgs(argv);
   if (options.background && options.wait) throw new Error("Choose either --background or --wait.");
   if (options.write && options["read-only"]) throw new Error("Choose either --write or --read-only.");
@@ -196,20 +223,24 @@ export async function handleRun(argv, env = process.env) {
   const prompt = readPrompt(cwd, options, positionals);
   if (!prompt) throw new Error("Provide task text or --prompt-file.");
   const ownerSessionId = options["owner-session-id"] ?? env.EVERY_HARNESS_SESSION_ID ?? null;
-  const active = findActiveJob(cwd, { harnessId: adapter.id, ownerSessionId }, env);
-  if (active) throw new Error(`${adapter.displayName} already has active work in this session.`);
-  const job = createJob(cwd, {
-    harnessId: adapter.id,
-    ownerSessionId,
-    mode: options.write ? "write" : "read",
-    model: adapter.normalizeModel?.(options.model) ?? options.model ?? null,
-    effort: adapter.normalizeEffort?.(options.effort) ?? options.effort ?? null,
-    phase: "queued",
-    status: "queued",
-    title: `${adapter.displayName} Run`,
-  }, env);
-  const request = buildRunRequest({ cwd, adapter, options, prompt, job });
-  patchJob(cwd, job.id, { request }, env);
+  let job;
+  let request;
+  await withJobStoreLock(cwd, env, () => {
+    const active = findActiveJob(cwd, { harnessId: adapter.id, ownerSessionId }, env);
+    if (active) throw new Error(`${adapter.displayName} already has active work in this session.`);
+    job = createJob(cwd, {
+      harnessId: adapter.id,
+      ownerSessionId,
+      mode: options.write ? "write" : "read",
+      model: adapter.normalizeModel?.(options.model) ?? options.model ?? null,
+      effort: adapter.normalizeEffort?.(options.effort) ?? options.effort ?? null,
+      phase: "queued",
+      status: "queued",
+      title: `${adapter.displayName} Run`,
+    }, env);
+    request = buildRunRequest({ cwd, adapter, options, prompt, job });
+    patchJob(cwd, job.id, { request }, env);
+  }, { name: `run-${adapter.id}-${ownerSessionId ?? "default"}` });
   if (options.background) {
     spawnWorker(cwd, job.id, env);
     const updated = patchJob(cwd, job.id, { phase: "queued", progress: `${adapter.displayName} is working in the background.` }, env);
@@ -222,6 +253,7 @@ export async function handleRun(argv, env = process.env) {
 }
 
 export async function handleWorker(argv, env = process.env) {
+  env = normalizeRuntimeEnv(env);
   const { options } = parseCommandArgs(argv);
   const cwd = resolveCwd(options);
   if (!options["job-id"]) throw new Error("Missing --job-id.");
@@ -232,21 +264,29 @@ export async function handleWorker(argv, env = process.env) {
 }
 
 export async function handleStatus(argv, env = process.env) {
+  env = normalizeRuntimeEnv(env);
   const { options } = parseCommandArgs(argv);
   const cwd = resolveCwd(options);
+  const harnessId = options.harness
+    ? resolveHarnessSelection({ requestedHarness: options.harness }).id
+    : null;
   if (options.wait) {
-    await waitForIdle(cwd, env, {
-      harnessId: options.harness ?? null,
+    const waitResult = await waitForIdle(cwd, env, {
+      harnessId,
       timeoutMs: options["timeout-ms"],
       pollIntervalMs: options["poll-interval-ms"],
     });
+    if (waitResult.timedOut) {
+      throw new Error(`Timed out waiting for Every Harness jobs${harnessId ? ` for ${harnessId}` : ""}.`);
+    }
   }
-  const jobs = listJobs(cwd, env).filter((job) => !options.harness || job.harnessId === options.harness);
+  const jobs = listJobs(cwd, env).filter((job) => !harnessId || job.harnessId === harnessId);
   output(options.json ? { jobs: jobs.map(publicJobPayload) } : renderStatus(jobs, { all: options.all || Boolean(options.harness) }), options.json);
   return jobs;
 }
 
 export async function handleCancel(argv, env = process.env) {
+  env = normalizeRuntimeEnv(env);
   const { options } = parseCommandArgs(argv);
   const cwd = resolveCwd(options);
   const adapter = options.harness
@@ -266,17 +306,26 @@ export async function handleCancel(argv, env = process.env) {
   }
   const selectedAdapter = adapter ?? resolveHarnessSelection({ requestedHarness: job.harnessId });
   transitionJob(cwd, job.id, ["running", "queued", "cancelling"], "cancelling", { phase: "cancelling" }, env);
-  const result = await selectedAdapter.cancel({
-    cwd,
-    env,
-    job,
-    pid: job.processRef?.pid,
-    pidIdentity: job.processRef?.pidIdentity,
-    sessionId: job.threadId,
-    threadId: job.threadId,
-    processRef: job.processRef,
-    providerMetadata: job.providerMetadata,
-  });
+  let result;
+  try {
+    result = await selectedAdapter.cancel({
+      cwd,
+      env,
+      job,
+      pid: job.processRef?.pid,
+      pidIdentity: job.processRef?.pidIdentity,
+      sessionId: job.threadId,
+      threadId: job.threadId,
+      processRef: job.processRef,
+      providerMetadata: job.providerMetadata,
+    });
+  } catch (error) {
+    result = {
+      cancelled: false,
+      status: "failed",
+      detail: error instanceof Error ? error.message : String(error),
+    };
+  }
   const wasCancelled = Boolean(result.cancelled ?? result.status === "cancelled");
   const cancelled = transitionJob(cwd, job.id, ["cancelling", "running"], wasCancelled ? "cancelled" : "cancel_failed", {
     phase: wasCancelled ? "cancelled" : "cancel_failed",

@@ -1,5 +1,6 @@
 import { spawn as nodeSpawn, spawnSync as nodeSpawnSync } from "node:child_process";
 import process from "node:process";
+import { getProcessIdentity, validateProcessIdentity } from "../runtime/process-control.mjs";
 
 const DEFAULT_AVAILABILITY_TIMEOUT_MS = 5000;
 const DEFAULT_MAX_STDERR_BYTES = 64 * 1024;
@@ -380,7 +381,8 @@ export function createCliHeadlessAdapter(definition, options = {}) {
         ],
       });
 
-      callbacks.onSpawn?.({ pid: child.pid });
+      const pidIdentity = getProcessIdentity(child.pid);
+      callbacks.onSpawn?.({ pid: child.pid, pidIdentity });
 
       let stdout = "";
       let stderr = "";
@@ -443,7 +445,7 @@ export function createCliHeadlessAdapter(definition, options = {}) {
           stderr,
           pid: child.pid,
           processRef: Number.isFinite(Number(child.pid))
-            ? { pid: Number(child.pid), pidIdentity: null }
+            ? { pid: Number(child.pid), pidIdentity }
             : null,
           providerMetadata: {
             harness: definition.id,
@@ -474,7 +476,7 @@ export function createCliHeadlessAdapter(definition, options = {}) {
           stderr: error instanceof Error ? error.message : String(error),
           pid: child.pid,
           processRef: Number.isFinite(Number(child.pid))
-            ? { pid: Number(child.pid), pidIdentity: null }
+            ? { pid: Number(child.pid), pidIdentity }
             : null,
           providerMetadata: {
             harness: definition.id,
@@ -519,6 +521,14 @@ export function createCliHeadlessAdapter(definition, options = {}) {
     }
 
     try {
+      const identity = request.pidIdentity ?? request.processRef?.pidIdentity ?? null;
+      if (!validateProcessIdentity(pid, identity)) {
+        return {
+          cancelled: false,
+          status: "failed",
+          detail: `${definition.displayName} process identity did not match; refusing to terminate PID ${pid}.`,
+        };
+      }
       killImpl(definition.detached === false ? pid : -pid, request.signal ?? "SIGTERM");
       return { cancelled: true, status: "cancelled" };
     } catch (error) {

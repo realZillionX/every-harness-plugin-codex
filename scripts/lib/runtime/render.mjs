@@ -7,8 +7,35 @@ const PRIVATE_KEYS = new Set([
   "request",
 ]);
 
+const SECRET_PATTERNS = [
+  {
+    pattern: /(["']?\bAUTHORIZATION["']?\s*[:=]\s*)(["']?)(?:Bearer\s+)?[^"',;\n}]+/gi,
+    replacement: "$1$2[REDACTED]$2",
+  },
+  {
+    pattern: /\bBearer\s+[A-Za-z0-9._~+/=-]+/gi,
+    replacement: "Bearer [REDACTED]",
+  },
+  {
+    pattern: /(["']?\b[A-Z0-9_-]*(?:API[_-]?KEY|TOKEN|SECRET|PASSWORD|AUTHORIZATION|ACCESS[_-]?TOKEN|REFRESH[_-]?TOKEN)[A-Z0-9_-]*["']?\s*[:=]\s*)(["']?)([^"',\s;}]+)/gi,
+    replacement: "$1$2[REDACTED]$2",
+  },
+  {
+    pattern: /\bsk-[A-Za-z0-9_-]{12,}\b/g,
+    replacement: "[REDACTED]",
+  },
+];
+
+export function redactSecrets(text) {
+  return SECRET_PATTERNS.reduce(
+    (current, { pattern, replacement }) => current.replace(pattern, replacement),
+    String(text ?? ""),
+  );
+}
+
 export function sanitizePublic(value) {
   if (Array.isArray(value)) return value.map(sanitizePublic);
+  if (typeof value === "string") return redactSecrets(value);
   if (!value || typeof value !== "object") return value;
   const out = {};
   for (const [key, nested] of Object.entries(value)) {

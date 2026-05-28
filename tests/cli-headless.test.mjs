@@ -236,6 +236,11 @@ test("cancel terminates process refs and explains session-only cancellation", as
   });
   assert.deepEqual(killed, [[-100, "SIGTERM"]]);
 
+  const stalePid = await adapter.cancel({ processRef: { pid: 100, pidIdentity: "stale" } });
+  assert.equal(stalePid.cancelled, false);
+  assert.match(stalePid.detail, /identity did not match/);
+  assert.deepEqual(killed, [[-100, "SIGTERM"]]);
+
   const sessionOnly = await adapter.cancel({ sessionId: "s-1" });
   assert.equal(sessionOnly.cancelled, false);
   assert.match(sessionOnly.detail, /does not expose protocol-level cancellation/);

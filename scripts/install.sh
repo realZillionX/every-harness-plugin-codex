@@ -38,13 +38,8 @@ CODEX_ROOT="${CODEX_HOME:-$HOME/.codex}"
 TARGET="$CODEX_ROOT/skills/every-harness"
 
 rm -rf "$TARGET"
-mkdir -p "$TARGET/agents"
+mkdir -p "$TARGET"
 cp "$ROOT/SKILL.md" "$TARGET/SKILL.md"
-cat >"$TARGET/agents/openai.yaml" <<'YAML'
-interface:
-  display_name: "Every Harness"
-  short_description: "Delegate scoped work to installed external harness CLIs through the every-harness mailbox."
-YAML
 
 printf 'skill -> %s\n' "$TARGET"
 printf 'Every Harness installed. Verify with: every-harness --help\n'
