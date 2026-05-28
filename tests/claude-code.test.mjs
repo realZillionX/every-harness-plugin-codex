@@ -6,11 +6,11 @@ import {
   MODEL_ALIASES,
   StreamParser,
   buildClaudeArgs,
-  createClaudeCliAdapter,
+  createClaudeCodeAdapter,
   resolveClaudeEffort,
   resolveClaudeModel,
   validateClaudeTurnCompletion,
-} from "../scripts/lib/adapters/claude-cli.mjs";
+} from "../scripts/lib/adapters/claude-code.mjs";
 
 function jsonLine(value) {
   return `${JSON.stringify(value)}\n`;
@@ -26,7 +26,7 @@ test("resolves Claude model aliases and preserves explicit model names", () => {
   assert.equal(resolveClaudeModel(null), undefined);
 });
 
-test("resolves Claude effort values and legacy aliases", () => {
+test("resolves Claude effort values and fallback aliases", () => {
   assert.equal(resolveClaudeEffort("low"), "low");
   assert.equal(resolveClaudeEffort("MEDIUM"), "medium");
   assert.equal(resolveClaudeEffort("high"), "high");
@@ -122,7 +122,7 @@ test("StreamParser captures structured_output on terminal result", () => {
     result: "",
     structured_output: {
       status: "ok",
-      files: ["tests/claude-cli.test.mjs"],
+      files: ["tests/claude-code.test.mjs"],
     },
   }));
 
@@ -130,11 +130,11 @@ test("StreamParser captures structured_output on terminal result", () => {
   assert.equal(events[0].kind, "result");
   assert.deepEqual(events[0].structuredOutput, {
     status: "ok",
-    files: ["tests/claude-cli.test.mjs"],
+    files: ["tests/claude-code.test.mjs"],
   });
   assert.deepEqual(parser.state.structuredOutput, {
     status: "ok",
-    files: ["tests/claude-cli.test.mjs"],
+    files: ["tests/claude-code.test.mjs"],
   });
 });
 
@@ -178,7 +178,7 @@ test("StreamParser reads assistant message content events", () => {
   assert.equal(parser.state.finalMessage, "assistant text");
 });
 
-test("buildClaudeArgs creates stream-json Claude CLI arguments", () => {
+test("buildClaudeArgs creates stream-json Claude Code arguments", () => {
   const args = buildClaudeArgs("do the task", {
     model: "sonnet",
     effort: "minimal",
@@ -259,9 +259,9 @@ test("buildClaudeArgs supports non-stream output and read-only tool defaults", (
   assert.ok(readOnlyArgs.includes("Grep"));
 });
 
-test("createClaudeCliAdapter exposes contract and uses injected probes", async () => {
+test("createClaudeCodeAdapter exposes contract and uses injected probes", async () => {
   const calls = [];
-  const adapter = createClaudeCliAdapter({
+  const adapter = createClaudeCodeAdapter({
     command: ["fake-claude", "--wrapped"],
     spawnSyncImpl(command, args) {
       calls.push({ command, args });
@@ -272,8 +272,8 @@ test("createClaudeCliAdapter exposes contract and uses injected probes", async (
     },
   });
 
-  assert.equal(adapter.id, "claude-cli");
-  assert.equal(adapter.displayName, "Claude CLI");
+  assert.equal(adapter.id, "claude-code");
+  assert.equal(adapter.displayName, "Claude Code");
   assert.equal(adapter.normalizeModel("sonnet"), "claude-sonnet-4-6");
   assert.equal(adapter.normalizeEffort("xhigh"), "max");
 
@@ -291,7 +291,7 @@ test("createClaudeCliAdapter exposes contract and uses injected probes", async (
     { command: "fake-claude", args: ["--wrapped", "auth", "status"] },
   ]);
 
-  const apiKeyAdapter = createClaudeCliAdapter({
+  const apiKeyAdapter = createClaudeCodeAdapter({
     spawnSyncImpl() {
       throw new Error("auth probe should not run with an API key");
     },

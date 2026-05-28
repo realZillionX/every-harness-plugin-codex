@@ -16,8 +16,8 @@ No active tracked tasks.
 
 当前 adapter 覆盖分三类：
 
-- 专用 adapter：`fake`、`claude-cli`。
-- 通用 ACP adapter：OpenCode、OpenClaw、Qoder CLI、Trae CLI、Qwen Code、GitHub Copilot CLI、Cursor Agent、iFlow CLI、Kiro CLI、Kilo Code CLI、Factory Droid 和 community Pi ACP bridge。
+- 专用 adapter：`fake`、`claude-code`。
+- 通用 ACP adapter：OpenCode、OpenClaw、Qoder、TRAE、GitHub Copilot、Cursor 和 Kiro。
 - 通用 native headless adapter：Antigravity text output、Kimi Code stream JSON 和 CodeWhale stream JSON。
 
 当前验证结果：`npm run check`、`npm run smoke:fake`、`npm run pack:dry-run` 应作为交付检查。
@@ -27,7 +27,7 @@ No active tracked tasks.
 插件入口和发布元数据：
 
 - `.codex-plugin/plugin.json`：Codex plugin manifest，声明 `every-harness` 和单一 skills 路径。
-- `package.json`：Node.js ESM 包，提供 `ehplugin` bin、安装 CLI、测试和打包脚本。
+- `package.json`：Node.js ESM 包，提供唯一公开 bin `ehplugin`、测试和打包脚本。
 - `README.md`、`CHANGELOG.md`、`LICENSE`、`NOTICE`：公开文档和许可材料。
 
 Codex-facing Skill：
@@ -45,7 +45,7 @@ Adapter 边界：
 
 - `scripts/lib/adapters/registry.mjs`：adapter 注册、别名和选择。
 - `scripts/lib/adapters/fake.mjs`：确定性 adapter，用于单测和 smoke。
-- `scripts/lib/adapters/claude-cli.mjs`：Claude CLI adapter，包含模型与 effort 别名、`stream-json` parser、read-only tool defaults、CLI probe 和进程组取消。
+- `scripts/lib/adapters/claude-code.mjs`：Claude Code adapter，包含模型与 effort 别名、`stream-json` parser、read-only tool defaults、CLI probe 和进程组取消。
 - `scripts/lib/adapters/acp-generic.mjs`：通用 ACP JSON-RPC adapter，用于已有明确 ACP 入口的具体 harness。
 - `scripts/lib/adapters/cli-headless.mjs`：通用 native headless adapter，用于 Antigravity text output、Kimi Code stream JSON 和 CodeWhale stream JSON。
 - `scripts/lib/adapters/builtin-harnesses.mjs`：真实 harness catalog，分开维护 ACP、native headless 和 planned harness。
@@ -53,7 +53,7 @@ Adapter 边界：
 测试覆盖：
 
 - `tests/runtime.test.mjs`：参数解析、job store、公开输出脱敏和 mailbox 主流程。
-- `tests/claude-cli.test.mjs`：Claude CLI stream parser、参数构建和 probe 行为。
+- `tests/claude-code.test.mjs`：Claude Code stream parser、参数构建和 probe 行为。
 - `tests/acp-generic.test.mjs`：generic ACP JSON-RPC fake process、cancel 和 catalog 边界。
 - `tests/cli-headless.test.mjs`：native text 和 stream JSON adapter 行为。
 - `tests/harness-catalog.test.mjs`：真实 harness catalog metadata 和 protocol 边界。

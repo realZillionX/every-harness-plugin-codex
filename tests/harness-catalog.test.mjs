@@ -15,13 +15,13 @@ import {
 const REQUIRED_HARNESSES = [
   "opencode",
   "openclaw",
-  "antigravity-cli",
+  "antigravity",
   "claude-code",
   "deepseek-tui",
   "codewhale",
   "kimi-code",
-  "trae-cli",
-  "qoder-cli",
+  "trae",
+  "qoder",
 ];
 
 function assertCatalogMetadata(definition) {
@@ -46,7 +46,7 @@ test("harness catalog keeps concrete harnesses explicit", () => {
     assertCatalogMetadata(definition);
   }
 
-  const dedicatedAliases = new Set(["claude-cli", "claude", "claude-code"]);
+  const dedicatedAliases = new Set(["claude", "claude-code"]);
   for (const id of REQUIRED_HARNESSES) {
     if (!dedicatedAliases.has(id)) {
       requireDefinition(BUILTIN_HARNESSES, id);
@@ -55,7 +55,7 @@ test("harness catalog keeps concrete harnesses explicit", () => {
 
   assert.ok(BUILTIN_ACP_HARNESSES.every((definition) => definition.protocol === "acp"));
 
-  const antigravity = requireDefinition(BUILTIN_CLI_HEADLESS_HARNESSES, "antigravity-cli");
+  const antigravity = requireDefinition(BUILTIN_CLI_HEADLESS_HARNESSES, "antigravity");
   assert.equal(antigravity.protocol, "native-text");
   assert.match(antigravity.install, /agy --print/);
   assert.match(antigravity.install, /ACP.*JSON.*stream/i);
@@ -72,6 +72,43 @@ test("harness catalog keeps concrete harnesses explicit", () => {
 
   const pi = requireDefinition(PLANNED_HARNESSES, "pi-coding-agent");
   assert.equal(pi.protocol, "native-rpc");
+});
+
+test("public harness ids use product names instead of cli-flavored ids", () => {
+  const publicIds = [
+    ...BUILTIN_HARNESSES.map((definition) => definition.id),
+    ...PLANNED_HARNESSES.map((definition) => definition.id),
+    "claude-code",
+  ];
+  const publicAliases = [
+    ...BUILTIN_HARNESSES.flatMap((definition) => definition.aliases ?? []),
+    ...PLANNED_HARNESSES.flatMap((definition) => definition.aliases ?? []),
+    "claude",
+  ];
+  for (const id of publicIds) {
+    assert.doesNotMatch(id, /-cli$/);
+    assert.doesNotMatch(id, /-bridge$/);
+    assert.notEqual(id, "cursor-agent");
+  }
+  for (const alias of publicAliases) {
+    assert.doesNotMatch(alias, /-cli$/);
+    assert.doesNotMatch(alias, /-bridge$/);
+    assert.notEqual(alias, "cursor-agent");
+  }
+  assert.deepEqual([...publicIds].sort(), [
+    "antigravity",
+    "claude-code",
+    "codewhale",
+    "copilot",
+    "cursor",
+    "kimi-code",
+    "kiro",
+    "openclaw",
+    "opencode",
+    "pi-coding-agent",
+    "qoder",
+    "trae",
+  ]);
 });
 
 test("catalog factories preserve protocol boundaries", async () => {

@@ -420,7 +420,7 @@ export function buildClaudeArgs(prompt, options = {}) {
   return args;
 }
 
-export function createClaudeCliAdapter(options = {}) {
+export function createClaudeCodeAdapter(options = {}) {
   const command = resolveCommand(options.command);
   const spawnImpl = options.spawnImpl ?? spawn;
   const spawnSyncImpl = options.spawnSyncImpl ?? spawnSync;
@@ -577,9 +577,9 @@ export function createClaudeCliAdapter(options = {}) {
   }
 
   return {
-    id: "claude-cli",
-    aliases: ["claude", "claude-code"],
-    displayName: "Claude CLI",
+    id: "claude-code",
+    aliases: ["claude"],
+    displayName: "Claude Code",
     defaultModel: MODEL_ALIASES.get("sonnet"),
     checkAvailability,
     checkAuth,

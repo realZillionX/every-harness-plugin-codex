@@ -14,11 +14,11 @@ Codex remains the planner and coordinator. A selected harness owns scoped execut
 
 ## CLI
 
-Installers expose `ehplugin` as the CLI. The local plugin installer places a shim at `~/.local/bin/ehplugin`。
+`ehplugin` is the only public CLI.
 
 ```bash
-ehplugin run --harness antigravity-cli inspect the current diff
-ehplugin run --harness claude-cli --write fix the failing parser test
+ehplugin run --harness antigravity inspect the current diff
+ehplugin run --harness claude-code --write fix the failing parser test
 ehplugin run --harness kimi-code --background summarize this repo
 ehplugin status --all
 ehplugin cancel --harness kimi-code
@@ -47,25 +47,26 @@ Supported `cancel` options:
 
 ## Built-In Harnesses
 
-- `fake`：deterministic local adapter for tests and smoke checks.
-- `claude-cli` / `claude-code`：Claude Code through `claude -p` stream JSON.
-- `antigravity-cli`：Google Antigravity CLI through limited `agy --print` text headless execution.
-- `opencode`：OpenCode through ACP.
-- `openclaw`：OpenClaw through ACP.
-- `codewhale` / `deepseek-tui`：community CodeWhale for DeepSeek-style coding through `stream-json` or ACP. This is not an official DeepSeek CLI.
-- `kimi-code`：Kimi Code through `kimi -p --output-format stream-json`; legacy `kimi acp` belongs to older `kimi-cli` research only.
-- `qoder-cli`：Qoder CLI through ACP.
-- `trae-cli`：official Trae CLI through `traecli acp serve`; `--print --json` is the native fallback.
-- `qwen-code`：Qwen Code through ACP.
-- `copilot-cli`：GitHub Copilot CLI through ACP.
-- `cursor-agent`：Cursor Agent through ACP.
-- `iflow-cli`：iFlow CLI through ACP.
-- `kiro-cli`：Kiro CLI through ACP.
-- `kilocode-cli`：Kilo Code CLI through ACP.
-- `factory-droid`：Factory Droid through ACP.
-- `pi-acp-bridge`：community `pi-acp` bridge through ACP.
+Every external harness is invoked through that harness's CLI entry. The public `--harness` name is the product-facing name; the CLI entry is the command that the adapter launches.
 
-Official Pi Coding Agent is tracked separately as `pi-coding-agent` and needs a dedicated `pi --mode rpc` / `pi --mode json` adapter before it should be considered runnable.
+| Harness | `--harness` | CLI entry |
+| --- | --- | --- |
+| Claude Code | `claude-code` | `claude` |
+| Antigravity | `antigravity` | `agy` |
+| OpenCode | `opencode` | `opencode` / `npx opencode-ai` |
+| OpenClaw | `openclaw` | `openclaw` |
+| CodeWhale | `codewhale` | `codewhale` |
+| Kimi Code | `kimi-code` | `kimi` |
+| Qoder | `qoder` | `qodercli` |
+| TRAE | `trae` | `traecli` |
+| GitHub Copilot | `copilot` | `copilot` |
+| Cursor | `cursor` | `cursor-agent` |
+| Kiro | `kiro` | `kiro-cli` |
+| Pi Coding Agent | `pi-coding-agent` | `pi` |
+
+`fake` is an internal deterministic adapter for tests and smoke checks, not an external harness CLI.
+
+Official Pi Coding Agent is tracked as planned and needs a dedicated `pi --mode rpc` / `pi --mode json` adapter before it should be considered runnable.
 
 Antigravity support is deliberately limited to text headless mode because ACP、JSON、and streaming contracts are not confirmed.
 

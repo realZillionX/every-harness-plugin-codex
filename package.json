@@ -10,8 +10,7 @@
   },
   "license": "Apache-2.0",
   "bin": {
-    "ehplugin": "scripts/ehplugin.mjs",
-    "every-harness-plugin-codex": "scripts/installer-cli.mjs"
+    "ehplugin": "scripts/ehplugin.mjs"
   },
   "files": [
     ".codex-plugin",

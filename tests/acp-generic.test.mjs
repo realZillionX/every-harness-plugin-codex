@@ -212,16 +212,11 @@ test("built-in ACP harness catalog includes user-requested harnesses", () => {
   for (const id of [
     "opencode",
     "openclaw",
-    "qoder-cli",
-    "trae-cli",
-    "qwen-code",
-    "copilot-cli",
-    "cursor-agent",
-    "iflow-cli",
-    "kiro-cli",
-    "kilocode-cli",
-    "factory-droid",
-    "pi-acp-bridge",
+    "qoder",
+    "trae",
+    "copilot",
+    "cursor",
+    "kiro",
   ]) {
     assert.equal(ids.has(id), true, `${id} missing from catalog`);
   }
@@ -233,7 +228,7 @@ test("built-in ACP harness catalog includes user-requested harnesses", () => {
 
 test("native headless catalog includes non-ACP requested harnesses", () => {
   const ids = new Set(BUILTIN_CLI_HEADLESS_HARNESSES.map((definition) => definition.id));
-  assert.equal(ids.has("antigravity-cli"), true);
+  assert.equal(ids.has("antigravity"), true);
   assert.equal(ids.has("codewhale"), true);
   assert.equal(ids.has("kimi-code"), true);
   const codewhale = BUILTIN_CLI_HEADLESS_HARNESSES.find((definition) => definition.id === "codewhale");

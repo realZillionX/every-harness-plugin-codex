@@ -14,8 +14,8 @@ async function registerBuiltInAdapters() {
     registerAdapter(adapter, adapter.aliases ?? []);
   }
   try {
-    const { createClaudeCliAdapter } = await import("./lib/adapters/claude-cli.mjs");
-    const adapter = createClaudeCliAdapter();
+    const { createClaudeCodeAdapter } = await import("./lib/adapters/claude-code.mjs");
+    const adapter = createClaudeCodeAdapter();
     registerAdapter(adapter, adapter.aliases ?? []);
   } catch {
     // Optional adapter files may be absent in minimal builds.

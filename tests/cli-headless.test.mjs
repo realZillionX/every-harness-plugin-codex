@@ -62,8 +62,8 @@ test("text stdout mode returns finalText and provider metadata", async () => {
   const adapter = createCliHeadlessAdapter(
     {
       id: "agy",
-      aliases: ["antigravity-cli"],
-      displayName: "Antigravity CLI",
+      aliases: ["antigravity"],
+      displayName: "Antigravity",
       command: "agy",
       args: ["--print"],
       modelFlag: "--model",
