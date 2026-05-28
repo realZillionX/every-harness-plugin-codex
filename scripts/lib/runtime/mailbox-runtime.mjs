@@ -18,8 +18,8 @@ import { publicJobPayload, renderJson, renderMailboxJob, renderStatus } from "./
 import { resolveHarnessSelection } from "../adapters/registry.mjs";
 
 const THIS_FILE = fileURLToPath(import.meta.url);
-const PLUGIN_ROOT = path.resolve(path.dirname(THIS_FILE), "..", "..", "..");
-const EHPLUGIN_PATH = path.join(PLUGIN_ROOT, "scripts", "ehplugin.mjs");
+const PACKAGE_ROOT = path.resolve(path.dirname(THIS_FILE), "..", "..", "..");
+const EVERY_HARNESS_PATH = path.join(PACKAGE_ROOT, "scripts", "every-harness.mjs");
 const DEFAULT_WAIT_TIMEOUT_MS = 240_000;
 const DEFAULT_POLL_INTERVAL_MS = 2_000;
 
@@ -165,7 +165,7 @@ export async function runJob(cwd, job, adapter, request, env = process.env) {
 }
 
 function spawnWorker(cwd, jobId, env) {
-  const child = spawn(process.execPath, [EHPLUGIN_PATH, "__worker", "--cwd", cwd, "--job-id", jobId], {
+  const child = spawn(process.execPath, [EVERY_HARNESS_PATH, "__worker", "--cwd", cwd, "--job-id", jobId], {
     cwd,
     env,
     detached: true,

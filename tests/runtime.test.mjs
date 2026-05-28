@@ -11,7 +11,7 @@ import {
   createJob,
   listJobs,
   readJob,
-  resolvePluginDataRoot,
+  resolveDataRoot,
 } from "../scripts/lib/runtime/job-store.mjs";
 import { handleCancel, handleRun, handleStatus } from "../scripts/lib/runtime/mailbox-runtime.mjs";
 import { publicJobPayload, sanitizePublic } from "../scripts/lib/runtime/render.mjs";
@@ -54,7 +54,7 @@ test("parses shell-like command arguments", () => {
 
 test("job state is workspace-scoped and public payloads are sanitized", () => {
   const cwd = makeTempWorkspace();
-  const env = { PLUGIN_DATA: path.join(cwd, "plugin-data") };
+  const env = { EVERY_HARNESS_DATA: path.join(cwd, "every-harness-data") };
   const job = createJob(cwd, {
     id: "job-test",
     harnessId: "fake",
@@ -65,7 +65,7 @@ test("job state is workspace-scoped and public payloads are sanitized", () => {
     processRef: { pid: 123 },
   }, env);
 
-  assert.equal(resolvePluginDataRoot(env), env.PLUGIN_DATA);
+  assert.equal(resolveDataRoot(env), env.EVERY_HARNESS_DATA);
   assert.equal(readJob(cwd, job.id, env).status, "running");
   assert.equal(listJobs(cwd, env).length, 1);
   assert.deepEqual(sanitizePublic(job).request, undefined);
@@ -88,7 +88,7 @@ test("mailbox runtime runs, reports, and cancels fake jobs", async () => {
   const env = {
     ...process.env,
     CODEX_HOME: path.join(cwd, "codex-home"),
-    PLUGIN_DATA: path.join(cwd, "plugin-data"),
+    EVERY_HARNESS_DATA: path.join(cwd, "every-harness-data"),
   };
   clearAdapters();
   registerAdapter(createFakeAdapter({ aliases: ["mock"] }));
@@ -124,7 +124,7 @@ test("mailbox runtime preserves resolved adapter failure status", async () => {
   const cwd = makeTempWorkspace();
   const env = {
     ...process.env,
-    PLUGIN_DATA: path.join(cwd, "plugin-data"),
+    EVERY_HARNESS_DATA: path.join(cwd, "every-harness-data"),
   };
   clearAdapters();
   registerAdapter({

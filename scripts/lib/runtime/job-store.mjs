@@ -10,8 +10,8 @@ export function nowIso() {
   return new Date().toISOString();
 }
 
-export function resolvePluginDataRoot(env = process.env) {
-  return env.PLUGIN_DATA || path.join(os.homedir(), ".codex", "plugins", "data", "every-harness");
+export function resolveDataRoot(env = process.env) {
+  return env.EVERY_HARNESS_DATA || path.join(os.homedir(), ".every-harness");
 }
 
 export function resolveWorkspaceRoot(cwd = process.cwd()) {
@@ -33,7 +33,7 @@ export function resolveWorkspaceHash(cwd = process.cwd()) {
 }
 
 export function resolveStateDir(cwd = process.cwd(), env = process.env) {
-  return path.join(resolvePluginDataRoot(env), "state", resolveWorkspaceHash(cwd));
+  return path.join(resolveDataRoot(env), "state", resolveWorkspaceHash(cwd));
 }
 
 export function resolveJobsDir(cwd = process.cwd(), env = process.env) {

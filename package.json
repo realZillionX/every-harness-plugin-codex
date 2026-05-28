@@ -1,7 +1,7 @@
 {
-  "name": "every-harness-plugin-codex",
+  "name": "every-harness-skill",
   "version": "0.1.0",
-  "description": "Codex plugin for delegating work to external agent harnesses through a shared mailbox runtime.",
+  "description": "Agent Skill and CLI for delegating work to external harnesses through a shared mailbox runtime.",
   "type": "module",
   "author": {
     "name": "realZillionX",
@@ -10,18 +10,17 @@
   },
   "license": "Apache-2.0",
   "bin": {
-    "ehplugin": "scripts/ehplugin.mjs"
+    "every-harness": "scripts/every-harness.mjs"
   },
   "files": [
-    ".codex-plugin",
+    "SKILL.md",
     "assets",
     "CHANGELOG.md",
     "LICENSE",
     "NOTICE",
     "README.md",
     "package.json",
-    "scripts",
-    "skills"
+    "scripts"
   ],
   "engines": {
     "node": ">=18"

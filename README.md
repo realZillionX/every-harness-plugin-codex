@@ -1,7 +1,7 @@
 <p align="center">
-  <img src="assets/logo.png" alt="Every Harness Plugin for Codex logo" width="160"><br>
-  <strong>Every Harness Plugin for Codex</strong><br>
-  <sub>One CLI. Multiple agent harnesses. Shared mailbox runtime.</sub>
+  <img src="assets/logo.png" alt="Every Harness logo" width="160"><br>
+  <strong>Every Harness</strong><br>
+  <sub>Skill + CLI delegation across local agent harnesses.</sub>
 </p>
 
 <p align="center">
@@ -12,36 +12,47 @@
 
 ---
 
-**Every Harness** is a Codex plugin that gives the agent one local CLI (`ehplugin`) for delegating scoped work to external agent harnesses.
+**Every Harness** is a root `SKILL.md` plus one local CLI, `every-harness`. The Skill teaches an agent when to delegate; the CLI handles `run`, `status`, `cancel`, mailbox state, and harness adapters.
 
-> This is **not** a user-facing slash-command toolkit. The plugin exposes a single Skill that teaches Codex when and how to delegate.
+It is not a slash-command toolkit. It does not register MCP servers, hooks, or hidden setup commands.
 
 ## Installation
 
-Every Harness has no custom installer or setup command. Installation is package- and manifest-driven:
+Every Harness has two installed pieces:
 
-- `.codex-plugin/plugin.json` tells Codex where to find the plugin Skill (`./skills/`).
-- `skills/ehplugin/SKILL.md` is the only public Skill exposed to Codex.
-- `package.json` exposes one executable: `ehplugin` → `scripts/ehplugin.mjs`.
-- External harness CLIs are not bundled. Install and authenticate the harnesses you want to use separately.
+- `SKILL.md` is copied into the target agent harness skill directory.
+- `package.json` exposes the `every-harness` executable through npm.
 
-For local development or manual CLI use from this checkout:
+From this checkout, install both:
 
 ```bash
-npm install -g .
-ehplugin run --harness fake --json smoke
+scripts/install.sh --harness codex
+every-harness --help
+every-harness run --harness fake --json smoke
 ```
 
-Use `npm link` instead of `npm install -g .` when you want live edits in this checkout to be reflected immediately:
+The installer supports `claude`, `codex`, `gemini`, `openclaw`, and `opencode`:
+
+```bash
+scripts/install.sh --harness claude,codex,opencode
+```
+
+For live development, link the CLI and refresh only the Skill copy:
 
 ```bash
 npm link
-ehplugin run --harness fake --json smoke
+scripts/install.sh --no-cli --harness codex
 ```
 
-When installed through Codex's plugin flow, the expected install contract is: Codex reads the plugin manifest, loads `skills/ehplugin/SKILL.md`, and installs the package so the `ehplugin` executable is available on PATH. The manifest alone only exposes the Skill text; the package `bin` is what provides the CLI. The plugin itself does not register slash commands, MCP servers, hooks, setup commands, or harness installers.
+Manual installation is also just those two steps:
 
-The harness adapters only route to existing local commands:
+```bash
+npm install -g .
+mkdir -p ~/.codex/skills/every-harness
+cp SKILL.md ~/.codex/skills/every-harness/SKILL.md
+```
+
+External harness CLIs are not bundled. Install and authenticate whichever harnesses you want to route to:
 
 | Harness | Required local command |
 | --- | --- |
@@ -63,8 +74,8 @@ The harness adapters only route to existing local commands:
   <tbody>
     <tr>
       <td align="center" colspan="3">
-        <strong>Codex</strong><br>
-        <sub>planner / coordinator</sub>
+        <strong>Agent Skill</strong><br>
+        <sub><code>SKILL.md</code> delegation playbook</sub>
       </td>
     </tr>
     <tr>
@@ -72,13 +83,13 @@ The harness adapters only route to existing local commands:
     </tr>
     <tr>
       <td align="center">
-        <strong><code>ehplugin</code> CLI</strong><br>
+        <strong><code>every-harness</code> CLI</strong><br>
         <sub>run / status / cancel</sub>
       </td>
       <td align="center">→</td>
       <td align="center">
         <strong>Mailbox State</strong><br>
-        <sub>local job records</sub>
+        <sub>local workspace-scoped job records</sub>
       </td>
     </tr>
     <tr>
@@ -96,66 +107,49 @@ The harness adapters only route to existing local commands:
     <tr>
       <td align="center" colspan="3">
         <strong>External Harness</strong><br>
-        <sub>scoped executor</sub>
+        <sub>scoped executor already installed on PATH</sub>
       </td>
     </tr>
   </tbody>
 </table>
 
-Codex remains the planner. A selected harness owns scoped execution. `ehplugin` owns local mailbox state, status rendering, cancellation, and adapter routing.
+The primary agent remains the planner. A selected harness owns scoped execution. `every-harness` owns local mailbox state, status rendering, cancellation, and adapter routing.
 
 ## Usage
 
 ```bash
-ehplugin run --harness <id> [options] <task>
-ehplugin status [options]
-ehplugin cancel [options]
+every-harness --help
+every-harness run --help
+every-harness status --help
+every-harness cancel --help
 ```
 
 ### Examples
 
 ```bash
 # Delegate a code review to Claude Code
-ehplugin run --harness claude-code --read-only review the auth module
+every-harness run --harness claude-code --read-only review the auth module
 
 # Run a background task with Kimi Code
-ehplugin run --harness kimi-code --background summarize this repo
+every-harness run --harness kimi-code --background summarize this repo
 
 # Write mode with Antigravity
-ehplugin run --harness antigravity --write fix the failing parser test
+every-harness run --harness antigravity --write fix the failing parser test
 
 # Check all active jobs
-ehplugin status --all
+every-harness status --all
 
 # Cancel a specific harness
-ehplugin cancel --harness kimi-code
+every-harness cancel --harness kimi-code
 ```
 
-### `run` Options
+### Commands
 
-| Flag | Description |
+| Command | Purpose |
 | --- | --- |
-| `--harness <id>` | Target harness (required) |
-| `--background` | Run asynchronously, check back with `status` |
-| `--write` | Allow the harness to modify files |
-| `--read-only` | Restrict the harness to read-only access |
-| `--model <model>` | Override model selection |
-| `--effort <effort>` | Set effort level |
-| `--prompt-file <path>` | Load task from file |
-
-### `status` Options
-
-| Flag | Description |
-| --- | --- |
-| `--harness <id>` | Filter by harness |
-| `--all` | Show all jobs |
-| `--wait` | Block until completion |
-
-### `cancel` Options
-
-| Flag | Description |
-| --- | --- |
-| `--harness <id>` | Cancel jobs for a specific harness |
+| `every-harness run --harness <id> [options] <task>` | Delegate scoped work |
+| `every-harness status [options]` | Inspect mailbox jobs |
+| `every-harness cancel [options]` | Cancel active delegated work |
 
 ## Supported Harnesses
 
@@ -181,12 +175,12 @@ ehplugin cancel --harness kimi-code
 npm test            # Run unit tests
 npm run check       # Lint + tests
 npm run smoke:fake  # Smoke test with fake adapter
-npm pack --dry-run  # Verify package contents
+npm run pack:dry-run # Verify package contents
 ```
 
 ## Privacy
 
-The plugin stores mailbox metadata locally under Codex plugin data storage. External prompts, selected repository context, and command output are sent only to the selected harness adapter and the harness CLI or protocol it controls.
+Every Harness stores mailbox metadata locally under `~/.every-harness` by default. Set `EVERY_HARNESS_DATA` to choose another state directory. External prompts, selected repository context, and command output are sent only to the selected harness adapter and the harness CLI or protocol it controls.
 
 ## License
 

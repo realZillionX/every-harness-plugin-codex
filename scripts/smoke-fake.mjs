@@ -6,10 +6,10 @@ import os from "node:os";
 import path from "node:path";
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "every-harness-smoke-"));
-const env = { ...process.env, PLUGIN_DATA: path.join(tmp, "plugin-data") };
+const env = { ...process.env, EVERY_HARNESS_DATA: path.join(tmp, "data") };
 
 function run(args) {
-  const result = spawnSync(process.execPath, ["scripts/ehplugin.mjs", ...args], {
+  const result = spawnSync(process.execPath, ["scripts/every-harness.mjs", ...args], {
     cwd: process.cwd(),
     env,
     encoding: "utf8",
