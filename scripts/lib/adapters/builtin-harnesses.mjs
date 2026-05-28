@@ -46,7 +46,7 @@ export const BUILTIN_ACP_HARNESSES = [
     displayName: "TRAE",
     command: "traecli",
     args: ["acp", "serve"],
-    install: "Install Trae CLI from the official Trae distribution, then expose `traecli acp serve` on PATH. Native fallback research tracks `traecli --print --json`.",
+    install: "Install TRAE CLI from the official distribution, then expose `traecli acp serve` on PATH.",
     source: "https://acpx.sh/agents.html#trae",
     auth: { envKeys: ["TRAECLI_PERSONAL_ACCESS_TOKEN"] },
   },

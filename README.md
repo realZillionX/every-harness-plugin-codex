@@ -67,8 +67,6 @@ Every external harness is invoked through that harness's CLI entry. The public `
 
 Antigravity support is deliberately limited to text headless mode because ACP、JSON、and streaming contracts are not confirmed.
 
-See [docs/research/2026-05-26-harness-catalog.md](docs/research/2026-05-26-harness-catalog.md) for the current source matrix.
-
 ## Development
 
 ```bash
