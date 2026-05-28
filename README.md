@@ -16,6 +16,47 @@
 
 > This is **not** a user-facing slash-command toolkit. The plugin exposes a single Skill that teaches Codex when and how to delegate.
 
+## Installation
+
+Every Harness has no custom installer or setup command. Installation is package- and manifest-driven:
+
+- `.codex-plugin/plugin.json` tells Codex where to find the plugin Skill (`./skills/`).
+- `skills/ehplugin/SKILL.md` is the only public Skill exposed to Codex.
+- `package.json` exposes one executable: `ehplugin` → `scripts/ehplugin.mjs`.
+- External harness CLIs are not bundled. Install and authenticate the harnesses you want to use separately.
+
+For local development or manual CLI use from this checkout:
+
+```bash
+npm install -g .
+ehplugin run --harness fake --json smoke
+```
+
+Use `npm link` instead of `npm install -g .` when you want live edits in this checkout to be reflected immediately:
+
+```bash
+npm link
+ehplugin run --harness fake --json smoke
+```
+
+When installed through Codex's plugin flow, the expected install contract is: Codex reads the plugin manifest, loads `skills/ehplugin/SKILL.md`, and installs the package so the `ehplugin` executable is available on PATH. The manifest alone only exposes the Skill text; the package `bin` is what provides the CLI. The plugin itself does not register slash commands, MCP servers, hooks, setup commands, or harness installers.
+
+The harness adapters only route to existing local commands:
+
+| Harness | Required local command |
+| --- | --- |
+| Claude Code | `claude` |
+| Antigravity | `agy` |
+| OpenCode | `npx opencode-ai` or `opencode` |
+| OpenClaw | `openclaw` |
+| CodeWhale | `codewhale` |
+| Kimi Code | `kimi` |
+| Qoder | `qodercli` |
+| TRAE | `traecli` |
+| GitHub Copilot | `copilot` |
+| Cursor | `cursor-agent` |
+| Kiro | `kiro-cli` |
+
 ## Architecture
 
 <table>
