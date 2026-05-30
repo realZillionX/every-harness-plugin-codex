@@ -54,6 +54,13 @@ async function registerBuiltInAdapters() {
   for (const adapter of createBuiltinHarnessAdapters()) {
     registerAdapter(adapter, adapter.aliases ?? []);
   }
+  try {
+    const { createClaudeCodeAdapter } = await import("./lib/adapters/claude-code.mjs");
+    const adapter = createClaudeCodeAdapter();
+    registerAdapter(adapter, adapter.aliases ?? []);
+  } catch {
+    // Optional adapter files may be absent in minimal builds.
+  }
 }
 
 function wantsHelp(command, argv) {

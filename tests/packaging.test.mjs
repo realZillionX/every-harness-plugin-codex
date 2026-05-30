@@ -41,7 +41,7 @@ test("installer installs the CLI and copies the Skill only to Codex", () => {
   assert.match(installer, /npm install -g/);
   assert.match(installer, /CODEX_HOME/);
   assert.match(installer, /CODEX_HOME:-\$HOME\/\.codex/);
-  assert.doesNotMatch(installer, /\.gemini|\.openclaw|opencode|--harness/);
+  assert.doesNotMatch(installer, /\.claude|\.gemini|\.openclaw|opencode|--harness/);
 });
 
 test("installer writes the Skill to CODEX_HOME without touching other harnesses", () => {
@@ -56,6 +56,7 @@ test("installer writes the Skill to CODEX_HOME without touching other harnesses"
     assert.equal(result.status, 0, result.stderr || result.stdout);
     assert.equal(fs.existsSync(path.join(codexHome, "skills", "every-harness", "SKILL.md")), true);
     assert.equal(fs.existsSync(path.join(codexHome, "skills", "every-harness", "agents", "openai.yaml")), false);
+    assert.equal(fs.existsSync(path.join(tempHome, ".claude")), false);
     assert.equal(fs.existsSync(path.join(tempHome, ".gemini")), false);
     assert.equal(fs.existsSync(path.join(tempHome, ".openclaw")), false);
     assert.equal(fs.existsSync(path.join(tempHome, ".config", "opencode")), false);

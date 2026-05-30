@@ -14,6 +14,7 @@ const REQUIRED_HARNESSES = [
   "opencode",
   "openclaw",
   "antigravity",
+  "claude-code",
   "codewhale",
   "kimi-code",
   "trae",
@@ -45,8 +46,11 @@ test("harness catalog keeps concrete harnesses explicit", () => {
     assertCatalogMetadata(definition);
   }
 
+  const dedicatedAliases = new Set(["claude", "claude-code"]);
   for (const id of REQUIRED_HARNESSES) {
-    requireDefinition(BUILTIN_HARNESSES, id);
+    if (!dedicatedAliases.has(id)) {
+      requireDefinition(BUILTIN_HARNESSES, id);
+    }
   }
 
   assert.ok(BUILTIN_ACP_HARNESSES.every((definition) => definition.protocol === "acp"));
@@ -70,9 +74,11 @@ test("harness catalog keeps concrete harnesses explicit", () => {
 test("public harness ids use product names instead of cli-flavored ids", () => {
   const publicIds = [
     ...BUILTIN_HARNESSES.map((definition) => definition.id),
+    "claude-code",
   ];
   const publicAliases = [
     ...BUILTIN_HARNESSES.flatMap((definition) => definition.aliases ?? []),
+    "claude",
   ];
   for (const id of publicIds) {
     assert.doesNotMatch(id, /-cli$/);
@@ -86,6 +92,7 @@ test("public harness ids use product names instead of cli-flavored ids", () => {
   }
   assert.deepEqual([...publicIds].sort(), [
     "antigravity",
+    "claude-code",
     "codewhale",
     "copilot",
     "cursor",
