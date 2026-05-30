@@ -51,7 +51,6 @@ External harness CLIs are not bundled. Install and authenticate whichever harnes
 
 | Harness | Required local command |
 | --- | --- |
-| Claude Code | `claude` |
 | Antigravity | `agy` |
 | OpenCode | `npx opencode-ai` or `opencode` |
 | OpenClaw | `openclaw` |
@@ -122,9 +121,6 @@ every-harness cancel --help
 ### Examples
 
 ```bash
-# Delegate a code review to Claude Code
-every-harness run --harness claude-code --read-only review the auth module
-
 # Run a background task with Kimi Code
 every-harness run --harness kimi-code --background summarize this repo
 
@@ -150,7 +146,6 @@ every-harness cancel --harness kimi-code
 
 | Harness | `--harness` | Protocol |
 | --- | --- | --- |
-| Claude Code | `claude-code` | Native stream JSON |
 | Antigravity | `antigravity` | Native text |
 | OpenCode | `opencode` | ACP |
 | OpenClaw | `openclaw` | ACP |
